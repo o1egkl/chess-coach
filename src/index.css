@@ -1,0 +1,96 @@
+@import 'chessground/assets/chessground.base.css';
+@import 'chessground/assets/chessground.brown.css';
+@import 'chessground/assets/chessground.cburnett.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Board Themes using Crisp SVG 8x8 Checkerboards */
+.theme-green cg-board {
+  background-color: #769656;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="%23769656"/><path d="M0 0h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 0h1v1H6z M1 1h1v1H1zM3 1h1v1H3zM5 1h1v1H5zM7 1h1v1H7z M0 2h1v1H0zM2 2h1v1H2zM4 2h1v1H4zM6 2h1v1H6z M1 3h1v1H1zM3 3h1v1H3zM5 3h1v1H5zM7 3h1v1H7z M0 4h1v1H0zM2 4h1v1H2zM4 4h1v1H4zM6 4h1v1H6z M1 5h1v1H1zM3 5h1v1H3zM5 5h1v1H5zM7 5h1v1H7z M0 6h1v1H0zM2 6h1v1H2zM4 6h1v1H4zM6 6h1v1H6z M1 7h1v1H1zM3 7h1v1H3zM5 7h1v1H5zM7 7h1v1H7z" fill="%23eeeed2"/></svg>');
+  background-size: 100% 100%;
+}
+
+.theme-wood cg-board {
+  background-color: #b58863;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="%23b58863"/><path d="M0 0h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 0h1v1H6z M1 1h1v1H1zM3 1h1v1H3zM5 1h1v1H5zM7 1h1v1H7z M0 2h1v1H0zM2 2h1v1H2zM4 2h1v1H4zM6 2h1v1H6z M1 3h1v1H1zM3 3h1v1H3zM5 3h1v1H5zM7 3h1v1H7z M0 4h1v1H0zM2 4h1v1H2zM4 4h1v1H4zM6 4h1v1H6z M1 5h1v1H1zM3 5h1v1H3zM5 5h1v1H5zM7 5h1v1H7z M0 6h1v1H0zM2 6h1v1H2zM4 6h1v1H4zM6 6h1v1H6z M1 7h1v1H1zM3 7h1v1H3zM5 7h1v1H5zM7 7h1v1H7z" fill="%23f0d9b5"/></svg>');
+  background-size: 100% 100%;
+}
+
+.theme-blue cg-board {
+  background-color: #607d8b;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="%23607d8b"/><path d="M0 0h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 0h1v1H6z M1 1h1v1H1zM3 1h1v1H3zM5 1h1v1H5zM7 1h1v1H7z M0 2h1v1H0zM2 2h1v1H2zM4 2h1v1H4zM6 2h1v1H6z M1 3h1v1H1zM3 3h1v1H3zM5 3h1v1H5zM7 3h1v1H7z M0 4h1v1H0zM2 4h1v1H2zM4 4h1v1H4zM6 4h1v1H6z M1 5h1v1H1zM3 5h1v1H3zM5 5h1v1H5zM7 5h1v1H7z M0 6h1v1H0zM2 6h1v1H2zM4 6h1v1H4zM6 6h1v1H6z M1 7h1v1H1zM3 7h1v1H3zM5 7h1v1H5zM7 7h1v1H7z" fill="%23dbe4eb"/></svg>');
+  background-size: 100% 100%;
+}
+
+.theme-graphite cg-board {
+  background-color: #1e293b;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="%231e293b"/><path d="M0 0h1v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 0h1v1H6z M1 1h1v1H1zM3 1h1v1H3zM5 1h1v1H5zM7 1h1v1H7z M0 2h1v1H0zM2 2h1v1H2zM4 2h1v1H4zM6 2h1v1H6z M1 3h1v1H1zM3 3h1v1H3zM5 3h1v1H5zM7 3h1v1H7z M0 4h1v1H0zM2 4h1v1H2zM4 4h1v1H4zM6 4h1v1H6z M1 5h1v1H1zM3 5h1v1H3zM5 5h1v1H5zM7 5h1v1H7z M0 6h1v1H0zM2 6h1v1H2zM4 6h1v1H4zM6 6h1v1H6z M1 7h1v1H1zM3 7h1v1H3zM5 7h1v1H5zM7 7h1v1H7z" fill="%23475569"/></svg>');
+  background-size: 100% 100%;
+}
+
+/* Ensure board fills container properly */
+.cg-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  display: block !important;
+}
+
+cg-container {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+cg-board {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Mobile touch & native app feel */
+html, body {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+button, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.8);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

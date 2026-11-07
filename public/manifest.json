@@ -1,0 +1,17 @@
+{
+  "name": "Chess Coach — Обучающая шахматная игра",
+  "short_name": "ChessCoach",
+  "description": "Интерактивная обучающая шахматная игра от 400 до 2400 Эло с искусственным интеллектом и тренером",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/chess-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
