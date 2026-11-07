@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { sounds } from '../engine/soundService';
 import { LevelConfig, Color } from '../types/chess';
+import { getLevelName } from '../config/levels';
+import { useLanguage } from '../context/LanguageContext';
 import { Trophy, Frown, Handshake, RotateCcw, ArrowRight, BarChart2, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
 
 interface GameOverModalProps {
@@ -33,6 +35,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   onAnalyze,
   onClose,
 }) => {
+  const { language, t } = useLanguage();
+
   useEffect(() => {
     if (isOpen) {
       if (result === 'win') {
@@ -51,6 +55,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   }, [isOpen, result]);
 
   if (!isOpen) return null;
+
+  const botName = getLevelName(level, language);
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -75,7 +81,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         {/* Title */}
         <div>
           <h2 className="text-xl font-bold text-white">
-            {result === 'win' ? 'Блестящая победа!' : result === 'loss' ? 'Поражение' : 'Ничья!'}
+            {result === 'win' ? t('victory') : result === 'loss' ? t('defeat') : t('draw')}
           </h2>
           <p className="text-sm text-slate-300 mt-1 font-medium">{reason}</p>
         </div>
@@ -83,7 +89,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         {/* Rating Change Badge */}
         {typeof eloDelta === 'number' && typeof newElo === 'number' && (
           <div className="bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl flex items-center justify-center gap-3 font-mono text-xs">
-            <span className="text-slate-400">Изменение рейтинга:</span>
+            <span className="text-slate-400">{language === 'en' ? 'Rating change:' : 'Изменение рейтинга:'}</span>
             <span
               className={`font-bold flex items-center gap-1 ${
                 eloDelta > 0 ? 'text-emerald-400' : eloDelta < 0 ? 'text-rose-400' : 'text-slate-300'
@@ -93,7 +99,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               {eloDelta > 0 ? `+${eloDelta}` : eloDelta}
             </span>
             <span className="text-slate-200">
-              (Новый Эло: <strong className="text-amber-400">{newElo}</strong>)
+              ({t('newRating')} <strong className="text-amber-400">{newElo}</strong>)
             </span>
           </div>
         )}
@@ -103,7 +109,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           <div className="bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 border border-amber-500/40 p-2.5 rounded-xl text-center space-y-0.5 animate-pulse">
             <div className="text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Разблокирован новый бот!</span>
+              <span>{language === 'en' ? 'New Bot Unlocked!' : 'Разблокирован новый бот!'}</span>
             </div>
             <div className="text-white text-xs font-semibold">{unlockedLevelName}</div>
           </div>
@@ -113,9 +119,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center justify-center gap-3">
           <span className="text-2xl">{level.avatar}</span>
           <div className="text-left">
-            <div className="text-xs text-slate-400">Соперник:</div>
+            <div className="text-xs text-slate-400">{language === 'en' ? 'Opponent:' : 'Соперник:'}</div>
             <div className="text-sm font-bold text-slate-100">
-              Уровень {level.id}: {level.name} ({level.elo} Эло)
+              {language === 'en' ? 'Level' : 'Уровень'} {level.id}: {botName} ({level.elo} {language === 'en' ? 'Elo' : 'Эло'})
             </div>
           </div>
         </div>
@@ -127,7 +133,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="w-full py-3 px-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20"
           >
             <BarChart2 className="w-4 h-4 text-slate-950" />
-            <span>Разбор партии и анализ ошибок</span>
+            <span>{t('reviewGame')}</span>
           </button>
         )}
 
@@ -138,7 +144,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Реванш</span>
+            <span>{t('rematch')}</span>
           </button>
 
           {result === 'win' && onNextLevel && level.id < 15 ? (
@@ -146,7 +152,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onNextLevel}
               className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow"
             >
-              <span>След. уровень</span>
+              <span>{t('nextLevel')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
@@ -154,7 +160,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
               onClick={onClose}
               className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition shadow"
             >
-              Закрыть
+              {t('close')}
             </button>
           )}
         </div>

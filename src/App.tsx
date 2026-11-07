@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Chess, Square } from 'chess.js';
 import { DrawShape } from 'chessground/draw';
-import { CHESS_LEVELS } from './config/levels';
+import { CHESS_LEVELS, getLevelName, getLevelRank, getLevelDescription } from './config/levels';
 import { identifyOpening, OpeningInfo } from './config/openings';
 import { LevelConfig, Color, MoveRecord, BoardTheme, EngineEvaluation, GameReport, PlayerProfile } from './types/chess';
 import { engine } from './engine/engineController';
@@ -9,6 +9,7 @@ import { sounds } from './engine/soundService';
 import { analyzeThreatsAndHints } from './engine/coachHeuristics';
 import { analyzeGame } from './engine/postGameAnalysis';
 import { storage } from './services/storageService';
+import { useLanguage } from './context/LanguageContext';
 import { ChessBoard } from './components/ChessBoard';
 import { EvalBar } from './components/EvalBar';
 import { LevelSelector } from './components/LevelSelector';
@@ -20,9 +21,12 @@ import { PostGameModal } from './components/PostGameModal';
 import { MistakeDrill } from './components/MistakeDrill';
 import { PuzzleTrainer } from './components/PuzzleTrainer';
 import { ProfileModal } from './components/ProfileModal';
-import { BookOpen, Target, BarChart2, Swords, User } from 'lucide-react';
+import { LanguageModal } from './components/LanguageModal';
+import { BookOpen, Target, BarChart2, Swords, Globe } from 'lucide-react';
 
 export const App: React.FC = () => {
+  const { language, t, setIsLanguageModalOpen } = useLanguage();
+
   // Navigation & Mode
   const [appMode, setAppMode] = useState<'play' | 'puzzles'>('play');
 
@@ -62,9 +66,7 @@ export const App: React.FC = () => {
   const [takebacksRemaining, setTakebacksRemaining] = useState<number>(CHESS_LEVELS[0].takebacksAllowed);
   const [threatRadarActive, setThreatRadarActive] = useState<boolean>(false);
   const [hintStage, setHintStage] = useState<0 | 1 | 2>(0);
-  const [coachMessage, setCoachMessage] = useState<string>(
-    'Добро пожаловать! Развивайте легкие фигуры (коней и слонов) и боритесь за центр доски.'
-  );
+  const [coachMessage, setCoachMessage] = useState<string>(() => t('coachWelcome'));
   const [blunderWarning, setBlunderWarning] = useState<string | null>(null);
   const [customShapes, setCustomShapes] = useState<DrawShape[]>([]);
 
@@ -77,6 +79,13 @@ export const App: React.FC = () => {
     result: 'win' | 'loss' | 'draw';
     reason: string;
   } | null>(null);
+
+  // Update coach welcome on language change if no moves made yet
+  useEffect(() => {
+    if (moveHistory.length === 0) {
+      setCoachMessage(t('coachWelcome'));
+    }
+  }, [language, t, moveHistory.length]);
 
   // Determine game phase
   const getGamePhase = (): 'Дебют' | 'Миттельшпиль' | 'Эндшпиль' => {
@@ -124,23 +133,23 @@ export const App: React.FC = () => {
   const checkGameStatus = (currentChess: Chess): boolean => {
     if (currentChess.isGameOver()) {
       let result: 'win' | 'loss' | 'draw' = 'draw';
-      let reason = 'Ничья';
+      let reason = t('draw');
 
       if (currentChess.isCheckmate()) {
         const winner = currentChess.turn() === 'w' ? 'black' : 'white';
         result = winner === playerColor ? 'win' : 'loss';
-        reason = result === 'win' ? 'Мат сопернику! Отличная игра!' : 'Вам поставлен мат.';
+        reason = result === 'win' ? t('reasonCheckmateWin') : t('reasonCheckmateLoss');
       } else if (currentChess.isDraw()) {
-        if (currentChess.isStalemate()) reason = 'Пат — ничья.';
-        else if (currentChess.isThreefoldRepetition()) reason = 'Троекратное повторение позиции — ничья.';
-        else if (currentChess.isInsufficientMaterial()) reason = 'Недостаточно материала для мата — ничья.';
-        else reason = 'Ничья по правилу 50 ходов.';
+        if (currentChess.isStalemate()) reason = t('reasonStalemate');
+        else if (currentChess.isThreefoldRepetition()) reason = t('reasonDrawRepetition');
+        else if (currentChess.isInsufficientMaterial()) reason = t('reasonDrawMaterial');
+        else reason = t('reasonDraw50Moves');
       }
 
       // Record completed game in storage
       const record = storage.recordCompletedGame({
         levelId: level.id,
-        botName: level.name,
+        botName: getLevelName(level, language),
         botElo: level.elo,
         botAvatar: level.avatar,
         playerColor,
@@ -159,11 +168,13 @@ export const App: React.FC = () => {
         ? CHESS_LEVELS.find((l) => l.id === record.newLevelUnlocked)
         : undefined;
 
+      const botDisplayName = unlockedLvl ? getLevelName(unlockedLvl, language) : '';
+
       setLastGameResultInfo({
         eloDelta: record.eloDelta,
         newElo: record.updatedProfile.elo,
         unlockedLevelName: unlockedLvl
-          ? `${unlockedLvl.id}. ${unlockedLvl.name} (${unlockedLvl.elo} Эло)`
+          ? `${unlockedLvl.id}. ${botDisplayName} (${unlockedLvl.elo} ${language === 'en' ? 'Elo' : 'Эло'})`
           : undefined,
       });
 
@@ -238,7 +249,7 @@ export const App: React.FC = () => {
         }
       );
     }, artificialDelay);
-  }, [level, playerColor, threatRadarActive, updateBoardShapes]);
+  }, [level, playerColor, threatRadarActive, updateBoardShapes, language]);
 
   // User Move Handler (never uses stale closures)
   const handleUserMove = useCallback((orig: string, dest: string, promotion: string = 'q') => {
@@ -250,59 +261,67 @@ export const App: React.FC = () => {
       const nextChess = new Chess(currentChess.fen());
       const moveResult = nextChess.move({ from: orig, to: dest, promotion });
 
-      if (!moveResult) return;
+      if (moveResult) {
+        // Blunder Shield check
+        if (level.hasBlunderShield) {
+          const evalDiff = evaluation?.scoreCp;
+          if (typeof evalDiff === 'number') {
+            const isWhite = playerColor === 'white';
+            const beforeAdvantage = isWhite ? evalDiff : -evalDiff;
 
-      if (moveResult.captured) sounds.playCapture();
-      else sounds.playMove();
-      if (nextChess.inCheck()) sounds.playCheck();
+            if (beforeAdvantage >= -100) {
+              const testFen = nextChess.fen();
+              engine.evaluatePositionOnly(testFen, 6, (fastEval) => {
+                if (typeof fastEval.scoreCp === 'number') {
+                  const afterAdvantage = isWhite ? fastEval.scoreCp : -fastEval.scoreCp;
+                  const loss = beforeAdvantage - afterAdvantage;
 
-      // Blunder Shield check (Levels 1-5)
-      if (level.hasBlunderShield) {
-        const piece = currentChess.get(orig as Square);
-        if (piece && (piece.type === 'q' || piece.type === 'r')) {
-          const opponentChessColor = playerColor === 'white' ? 'b' : 'w';
-          const playerChessColor = playerColor === 'white' ? 'w' : 'b';
-          const isAttacked = nextChess.isAttacked(dest as Square, opponentChessColor);
-          const isDefended = nextChess.isAttacked(dest as Square, playerChessColor);
-          if (isAttacked && !isDefended) {
-            sounds.playBlunderAlert();
-            setBlunderWarning(
-              `Осторожно! Вы только что поставили фигуру (${moveResult.san}) под незащищенный удар!`
-            );
-          } else {
-            setBlunderWarning(null);
+                  if (loss >= 220) {
+                    sounds.playBlunderAlert();
+                    setBlunderWarning(t('blunderAlert'));
+                  }
+                }
+              });
+            }
           }
         }
-      }
 
-      chessRef.current = nextChess;
-      setChess(nextChess);
+        chessRef.current = nextChess;
+        setChess(nextChess);
 
-      const newRecord: MoveRecord = {
-        san: moveResult.san,
-        from: moveResult.from,
-        to: moveResult.to,
-        color: moveResult.color === 'w' ? 'white' : 'black',
-        fen: nextChess.fen(),
-      };
-      setMoveHistory((prev) => {
-        const updated = [...prev, newRecord];
-        const sans = updated.map((m) => m.san);
-        setOpeningInfo(identifyOpening(sans));
-        return updated;
-      });
+        if (moveResult.captured) sounds.playCapture();
+        else sounds.playMove();
+        if (nextChess.inCheck()) sounds.playCheck();
 
-      setHintStage(0);
-      updateBoardShapes(0, threatRadarActive);
+        const newRecord: MoveRecord = {
+          san: moveResult.san,
+          from: moveResult.from,
+          to: moveResult.to,
+          color: moveResult.color === 'w' ? 'white' : 'black',
+          fen: nextChess.fen(),
+        };
+        const updatedHistory = [...moveHistory, newRecord];
+        setMoveHistory(updatedHistory);
 
-      const isOver = checkGameStatus(nextChess);
-      if (!isOver) {
-        triggerBotMove(nextChess);
+        // Opening detection
+        const detectedOpening = identifyOpening(updatedHistory.map((m) => m.san));
+        if (detectedOpening) {
+          setOpeningInfo(detectedOpening);
+        }
+
+        setHintStage(0);
+        setBlunderWarning(null);
+        updateBoardShapes(0, threatRadarActive);
+
+        const isOver = checkGameStatus(nextChess);
+        if (!isOver) {
+          triggerBotMove(nextChess);
+        }
       }
     } catch (err) {
-      console.error('Invalid move attempted:', err);
+      console.warn('Illegal move attempted:', err);
     }
-  }, [isBotThinking, level, playerColor, threatRadarActive, triggerBotMove, updateBoardShapes]);
+  }, [evaluation, isBotThinking, level, moveHistory, playerColor, threatRadarActive, triggerBotMove, updateBoardShapes, t]);
 
   // Two-Stage Hint Requests
   const handleRequestNudge = () => {
@@ -329,7 +348,11 @@ export const App: React.FC = () => {
         const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove);
         if (threats.solutionMove) {
           setCoachMessage(
-            `Рекомендуемый ход: ${threats.solutionMove.san} (с поля ${threats.solutionMove.from} на ${threats.solutionMove.to})`
+            t('recommendedMove', {
+              move: threats.solutionMove.san,
+              from: threats.solutionMove.from,
+              to: threats.solutionMove.to,
+            })
           );
         }
         updateBoardShapes(2, threatRadarActive, evalData.bestMove);
@@ -344,7 +367,7 @@ export const App: React.FC = () => {
     updateBoardShapes(hintStage, next, evaluation?.bestMove);
   };
 
-  // Start New Game
+  // Reset / New Game
   const handleNewGame = () => {
     engine.stop();
     const freshChess = new Chess();
@@ -362,8 +385,11 @@ export const App: React.FC = () => {
     setGameReport(null);
     setIsPostGameModalOpen(false);
     setIsMistakeDrillOpen(false);
+    const botName = getLevelName(level, language);
     setCoachMessage(
-      `Новая партия против бота "${level.name}" (${level.elo} Эло). Удачной игры!`
+      language === 'en'
+        ? `New game against bot "${botName}" (${level.elo} Elo). Good luck!`
+        : `Новая партия против бота "${botName}" (${level.elo} Эло). Удачной игры!`
     );
 
     if (playerColor === 'black') {
@@ -411,8 +437,12 @@ export const App: React.FC = () => {
     setLevel(newLevel);
     setTakebacksRemaining(newLevel.takebacksAllowed);
     engine.setLevel(newLevel);
+    const botName = getLevelName(newLevel, language);
+    const botDesc = getLevelDescription(newLevel, language);
     setCoachMessage(
-      `Выбран уровень ${newLevel.id}: ${newLevel.name} (${newLevel.elo} Эло). ${newLevel.description}`
+      language === 'en'
+        ? `Selected Level ${newLevel.id}: ${botName} (${newLevel.elo} Elo). ${botDesc}`
+        : `Выбран уровень ${newLevel.id}: ${botName} (${newLevel.elo} Эло). ${botDesc}`
     );
   };
 
@@ -443,7 +473,11 @@ export const App: React.FC = () => {
       setTakebacksRemaining((prev) => prev - 1);
     }
 
-    setCoachMessage('Ход возвращен. Найдите более сильное продолжение!');
+    setCoachMessage(
+      language === 'en'
+        ? 'Move taken back. Find a stronger continuation!'
+        : 'Ход возвращен. Найдите более сильное продолжение!'
+    );
   };
 
   // Flip Board
@@ -451,36 +485,51 @@ export const App: React.FC = () => {
     setBoardOrientation((prev) => (prev === 'white' ? 'black' : 'white'));
   };
 
-  // Select Player Color
+  // Player Color Selection
   const handleSelectColor = (color: Color) => {
+    if (moveHistory.length > 0 && !chess.isGameOver()) {
+      if (
+        !window.confirm(
+          language === 'en'
+            ? 'Starting a new game with the chosen color. Continue?'
+            : 'Начать новую партию выбранным цветом?'
+        )
+      ) {
+        return;
+      }
+    }
     setPlayerColor(color);
     setBoardOrientation(color);
+
     engine.stop();
     const freshChess = new Chess();
     chessRef.current = freshChess;
     setChess(freshChess);
     setMoveHistory([]);
-    setGameOver(null);
-    setCustomShapes([]);
+    setEvaluation(null);
     setIsBotThinking(false);
+    setGameOver(null);
+    setHintStage(0);
+    setBlunderWarning(null);
+    setCustomShapes([]);
+    setOpeningInfo(null);
+    setTakebacksRemaining(level.takebacksAllowed);
+    setGameReport(null);
 
     if (color === 'black') {
       triggerBotMove(freshChess);
     }
   };
 
-  // Toggle Audio
   const handleToggleSound = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
     sounds.enabled = next;
   };
 
-  // Switch to next level on victory
   const handleNextLevel = () => {
-    const nextId = level.id + 1;
-    const nextLvl = CHESS_LEVELS.find((l) => l.id === nextId);
-    if (nextLvl) {
+    if (level.id < 15) {
+      const nextLvl = CHESS_LEVELS[level.id];
       handleSelectLevel(nextLvl);
       handleNewGame();
     }
@@ -489,6 +538,9 @@ export const App: React.FC = () => {
   const isPlayerTurn =
     (chess.turn() === 'w' && playerColor === 'white') ||
     (chess.turn() === 'b' && playerColor === 'black');
+
+  const botName = getLevelName(level, language);
+  const botRank = getLevelRank(level, language);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
@@ -501,7 +553,7 @@ export const App: React.FC = () => {
               <h1 className="font-extrabold text-sm sm:text-base bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent flex items-center gap-2">
                 Chess Coach
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full hidden sm:inline">
-                  15 Уровней (400–2400 Эло)
+                  {t('appSubtitle')}
                 </span>
               </h1>
             </div>
@@ -518,7 +570,7 @@ export const App: React.FC = () => {
               }`}
             >
               <Swords className="w-3.5 h-3.5" />
-              <span>Партия</span>
+              <span>{t('navPlay')}</span>
             </button>
 
             <button
@@ -530,27 +582,37 @@ export const App: React.FC = () => {
               }`}
             >
               <Target className="w-3.5 h-3.5" />
-              <span>Задачи (Тренажёр)</span>
+              <span>{t('navPuzzles')}</span>
             </button>
 
             {moveHistory.length > 0 && (
               <button
                 onClick={handleTriggerAnalysis}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-amber-300 hover:text-white hover:bg-slate-750 transition"
-                title="Разобрать сыгранную партию"
+                title={language === 'en' ? 'Review played game' : 'Разобрать сыгранную партию'}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
-                <span>Разбор</span>
+                <span>{t('navReview')}</span>
               </button>
             )}
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Language Selector Pill */}
+            <button
+              onClick={() => setIsLanguageModalOpen(true)}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 px-2 py-1 rounded-lg border border-slate-700 hover:border-slate-600 text-xs text-slate-200 transition shadow-sm font-semibold"
+              title={language === 'en' ? 'Change Language' : 'Сменить язык'}
+            >
+              <span className="text-sm">{language === 'ru' ? '🇷🇺' : '🇬🇧'}</span>
+              <span className="font-mono text-[11px] uppercase font-bold">{language}</span>
+            </button>
+
             {/* Player Profile Button */}
             <button
               onClick={() => setIsProfileOpen(true)}
               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs transition shadow-sm"
-              title="Открыть профиль и статистику игрока"
+              title={language === 'en' ? 'Open Player Profile' : 'Открыть профиль и статистику игрока'}
             >
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold">
                 👤
@@ -560,20 +622,20 @@ export const App: React.FC = () => {
                   {profile.name}
                 </div>
                 <div className="text-[9px] text-emerald-400 font-mono">
-                  {profile.elo} Эло
+                  {profile.elo} {language === 'en' ? 'Elo' : 'Эло'}
                 </div>
               </div>
             </button>
 
             {/* Current Bot Info */}
-            <div className="flex items-center gap-2 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-xs">
+            <div className="flex items-center gap-2 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-xs hidden sm:flex">
               <span className="text-base">{level.avatar}</span>
               <div className="text-left">
                 <div className="font-bold text-slate-200 text-[11px] leading-tight">
-                  {level.name}
+                  {botName}
                 </div>
                 <div className="text-[9px] text-amber-400 font-mono">
-                  {level.elo} Эло • {level.rank}
+                  {level.elo} {language === 'en' ? 'Elo' : 'Эло'} • {botRank}
                 </div>
               </div>
             </div>
@@ -623,20 +685,28 @@ export const App: React.FC = () => {
                 <span className="text-xl">{level.avatar}</span>
                 <div>
                   <span className="font-bold text-slate-100 text-[12px] flex items-center gap-1.5">
-                    Бот {level.name}
+                    {language === 'en' ? `Bot ${botName}` : `Бот ${botName}`}
                     {isBotThinking && (
                       <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-normal animate-pulse">
-                        думает...
+                        {language === 'en' ? 'thinking...' : 'думает...'}
                       </span>
                     )}
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">
-                    {level.rank} ({level.elo} Эло)
+                    {botRank} ({level.elo} {language === 'en' ? 'Elo' : 'Эло'})
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 font-mono text-slate-400 text-[11px]">
-                <span>{playerColor === 'white' ? 'Черные' : 'Белые'}</span>
+                <span>
+                  {playerColor === 'white'
+                    ? language === 'en'
+                      ? 'Black'
+                      : 'Черные'
+                    : language === 'en'
+                    ? 'White'
+                    : 'Белые'}
+                </span>
                 <span className="text-sm">{playerColor === 'white' ? '♚' : '♔'}</span>
               </div>
             </div>
@@ -665,14 +735,28 @@ export const App: React.FC = () => {
                   👤
                 </div>
                 <div>
-                  <span className="font-bold text-slate-100 text-[12px]">Вы (Игрок)</span>
+                  <span className="font-bold text-slate-100 text-[12px]">
+                    {language === 'en' ? 'You (Player)' : 'Вы (Игрок)'}
+                  </span>
                   <span className="block text-[10px] text-emerald-400 font-mono">
-                    {isPlayerTurn && !isBotThinking ? 'Ваш ход' : 'Ожидание соперника'}
+                    {isPlayerTurn && !isBotThinking
+                      ? t('yourTurn')
+                      : language === 'en'
+                      ? 'Waiting for opponent'
+                      : 'Ожидание соперника'}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 font-mono text-slate-400 text-[11px]">
-                <span>{playerColor === 'white' ? 'Белые' : 'Черные'}</span>
+                <span>
+                  {playerColor === 'white'
+                    ? language === 'en'
+                      ? 'White'
+                      : 'Белые'
+                    : language === 'en'
+                      ? 'Black'
+                      : 'Черные'}
+                </span>
                 <span className="text-sm">{playerColor === 'white' ? '♔' : '♚'}</span>
               </div>
             </div>
@@ -700,12 +784,24 @@ export const App: React.FC = () => {
             <div className="bg-slate-850/60 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-slate-200 text-[11px]">
                 <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Главные правила шахматиста:</span>
+                <span>{language === 'en' ? 'Key Chess Principles:' : 'Главные правила шахматиста:'}</span>
               </div>
               <ul className="list-disc list-inside space-y-0.5 text-slate-400 text-[10px] leading-relaxed">
-                <li>Развивайте коней и слонов перед атакой.</li>
-                <li>Сделайте рокировку до 10-го хода.</li>
-                <li>Проверяйте шахи и взятия соперника перед ходом.</li>
+                <li>
+                  {language === 'en'
+                    ? 'Develop minor pieces (knights & bishops) before attacking.'
+                    : 'Развивайте коней и слонов перед атакой.'}
+                </li>
+                <li>
+                  {language === 'en'
+                    ? 'Castle early to keep your king safe.'
+                    : 'Сделайте рокировку до 10-го хода.'}
+                </li>
+                <li>
+                  {language === 'en'
+                    ? 'Check opponent checks and captures before each move.'
+                    : 'Проверяйте шахи и взятия соперника перед ходом.'}
+                </li>
               </ul>
             </div>
           </section>
@@ -734,7 +830,7 @@ export const App: React.FC = () => {
       <PostGameModal
         isOpen={isPostGameModalOpen}
         result={gameOver?.result || 'draw'}
-        reason={gameOver?.reason || 'Партия в процессе или завершена'}
+        reason={gameOver?.reason || (language === 'en' ? 'Game in progress or finished' : 'Партия в процессе или завершена')}
         report={gameReport}
         isAnalyzing={isAnalyzingGame}
         analysisProgress={analysisProgress}
@@ -764,6 +860,9 @@ export const App: React.FC = () => {
         onUpdateProfile={setProfile}
         onClose={() => setIsProfileOpen(false)}
       />
+
+      {/* Language Selection Modal (Shown at first launch or via Header flag button) */}
+      <LanguageModal />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { MoveRecord } from '../types/chess';
+import { useLanguage } from '../context/LanguageContext';
 import { ScrollText } from 'lucide-react';
 
 interface MoveHistoryProps {
@@ -8,6 +9,7 @@ interface MoveHistoryProps {
 }
 
 export const MoveHistory: React.FC<MoveHistoryProps> = ({ moves, currentMoveIndex }) => {
+  const { language } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Group moves into pairs (turns)
@@ -31,7 +33,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({ moves, currentMoveInde
     <div className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-xl flex flex-col h-[200px] md:h-[260px]">
       <div className="flex items-center gap-1.5 pb-2 border-b border-slate-700/60 text-xs font-bold text-slate-300">
         <ScrollText className="w-4 h-4 text-emerald-400" />
-        <span>Нотация партии (PGN)</span>
+        <span>{language === 'en' ? 'Move History (PGN)' : 'Нотация партии (PGN)'}</span>
       </div>
 
       <div
@@ -40,7 +42,7 @@ export const MoveHistory: React.FC<MoveHistoryProps> = ({ moves, currentMoveInde
       >
         {turns.length === 0 ? (
           <div className="h-full flex items-center justify-center text-slate-500 italic text-[11px]">
-            Партия еще не началась
+            {language === 'en' ? 'Game has not started yet' : 'Партия еще не началась'}
           </div>
         ) : (
           turns.map((turn) => {

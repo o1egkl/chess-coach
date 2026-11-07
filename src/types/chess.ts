@@ -5,7 +5,9 @@ export type League = 'beginner' | 'club' | 'master';
 export interface LevelConfig {
   id: number;
   name: string;
+  nameEn?: string;
   rank: string;
+  rankEn?: string;
   elo: number;
   league: League;
   avatar: string;
@@ -16,9 +18,13 @@ export interface LevelConfig {
   uciLimitStrength: boolean;
   uciElo?: number;
   description: string;
+  descriptionEn?: string;
   typicalMistakes: string;
+  typicalMistakesEn?: string;
   coachSupport: string;
+  coachSupportEn?: string;
   winRequirement: string;
+  winRequirementEn?: string;
   takebacksAllowed: number; // -1 for infinite
   hasBlunderShield: boolean;
   hasHeatmap: boolean;
@@ -80,14 +86,19 @@ export interface GameReport {
 export interface Puzzle {
   id: string;
   title: string;
+  titleEn?: string;
   theme: string;
+  themeEn?: string;
   difficulty: 'Легко' | 'Средне' | 'Сложно';
+  difficultyEn?: 'Easy' | 'Medium' | 'Hard';
   rating: number;
   playerColor: Color;
   fen: string;
   solutionUci: string[]; // sequence of moves in UCI: e.g. ["e7e8q", "a8e8", "d1e8"]
   description: string;
+  descriptionEn?: string;
   hint: string;
+  hintEn?: string;
 }
 
 export interface RatingHistoryPoint {

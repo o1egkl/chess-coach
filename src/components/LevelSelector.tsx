@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { CHESS_LEVELS } from '../config/levels';
+import { CHESS_LEVELS, getLevelName, getLevelRank, getLevelDescription, getLevelMistakes, getLevelSupport, getLevelRequirement } from '../config/levels';
 import { LevelConfig, League, BotProgress } from '../types/chess';
+import { useLanguage } from '../context/LanguageContext';
 import { Trophy, Shield, Swords, ChevronDown, ChevronUp, Lock, CheckCircle2 } from 'lucide-react';
 
 interface LevelSelectorProps {
@@ -16,27 +17,25 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
   botProgress,
   disabled = false,
 }) => {
+  const { language, t } = useLanguage();
   const [selectedLeague, setSelectedLeague] = useState<League>(currentLevel.league);
   const [expandedLevelId, setExpandedLevelId] = useState<number | null>(currentLevel.id);
 
-  const leagueLabels: Record<League, { title: string; icon: React.ReactNode; color: string; range: string }> = {
+  const leagueLabels: Record<League, { title: string; icon: React.ReactNode; range: string }> = {
     beginner: {
-      title: 'Лига начинающих',
+      title: language === 'en' ? 'Beginners' : 'Лига начинающих',
       icon: <Shield className="w-4 h-4 text-emerald-400" />,
-      color: 'border-emerald-500/40 text-emerald-400',
-      range: 'Уровни 1–5 (400–1000 Эло)',
+      range: language === 'en' ? 'Levels 1–5 (400–1000 Elo)' : 'Уровни 1–5 (400–1000 Эло)',
     },
     club: {
-      title: 'Клубная лига',
+      title: language === 'en' ? 'Club League' : 'Клубная лига',
       icon: <Swords className="w-4 h-4 text-blue-400" />,
-      color: 'border-blue-500/40 text-blue-400',
-      range: 'Уровни 6–10 (1150–1750 Эло)',
+      range: language === 'en' ? 'Levels 6–10 (1150–1750 Elo)' : 'Уровни 6–10 (1150–1750 Эло)',
     },
     master: {
-      title: 'Мастерская лига',
+      title: language === 'en' ? 'Master League' : 'Мастерская лига',
       icon: <Trophy className="w-4 h-4 text-amber-400" />,
-      color: 'border-amber-500/40 text-amber-400',
-      range: 'Уровни 11–15 (1900–2420+ Эло)',
+      range: language === 'en' ? 'Levels 11–15 (1900–2420+ Elo)' : 'Уровни 11–15 (1900–2420+ Эло)',
     },
   };
 
@@ -58,7 +57,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
           >
             <div className="flex items-center gap-1">
               {leagueLabels[league].icon}
-              <span className="hidden sm:inline">{leagueLabels[league].title.split(' ')[0]}</span>
+              <span className="hidden sm:inline">{leagueLabels[league].title}</span>
               <span className="sm:hidden">{league.slice(0, 3).toUpperCase()}</span>
             </div>
             <span className="text-[10px] text-slate-400 mt-0.5">
@@ -70,16 +69,18 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
 
       {/* Level List */}
       <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
-        {filteredLevels.map((level) => {
-          const isCurrent = level.id === currentLevel.id;
-          const isExpanded = expandedLevelId === level.id;
-          const stat = botProgress ? botProgress[level.id] : undefined;
+        {filteredLevels.map((lvl) => {
+          const isCurrent = lvl.id === currentLevel.id;
+          const isExpanded = expandedLevelId === lvl.id;
+          const stat = botProgress ? botProgress[lvl.id] : undefined;
           const isUnlocked = stat ? stat.unlocked : true;
           const isBeaten = stat ? stat.wins > 0 : false;
+          const botName = getLevelName(lvl, language);
+          const botRank = getLevelRank(lvl, language);
 
           return (
             <div
-              key={level.id}
+              key={lvl.id}
               className={`border rounded-lg transition-all ${
                 isCurrent
                   ? 'bg-emerald-950/40 border-emerald-500/60 shadow-lg'
@@ -94,10 +95,10 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
               <div
                 onClick={() => {
                   if (!disabled && isUnlocked) {
-                    onSelectLevel(level);
-                    setExpandedLevelId(isExpanded ? null : level.id);
+                    onSelectLevel(lvl);
+                    setExpandedLevelId(isExpanded ? null : lvl.id);
                   } else if (!isUnlocked) {
-                    setExpandedLevelId(isExpanded ? null : level.id);
+                    setExpandedLevelId(isExpanded ? null : lvl.id);
                   }
                 }}
                 className={`flex items-center justify-between p-2.5 select-none ${
@@ -105,35 +106,35 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{level.avatar}</span>
+                  <span className="text-2xl">{lvl.avatar}</span>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-slate-100">
-                        {level.id}. {level.name}
+                        {lvl.id}. {botName}
                       </span>
                       {isCurrent && (
                         <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-slate-950 rounded">
-                          В игре
+                          {language === 'en' ? 'Active' : 'В игре'}
                         </span>
                       )}
                       {!isUnlocked && (
                         <span className="px-1.5 py-0.2 text-[9px] font-semibold bg-slate-800 text-slate-400 rounded flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" /> Закрыт
+                          <Lock className="w-2.5 h-2.5" /> {t('locked')}
                         </span>
                       )}
                       {isBeaten && (
-                        <span className="text-emerald-400" title={`Пройден (${stat?.wins} побед)`}>
+                        <span className="text-emerald-400" title={language === 'en' ? `Beaten (${stat?.wins} wins)` : `Пройден (${stat?.wins} побед)`}>
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <span>{level.rank}</span>
+                      <span>{botRank}</span>
                       <span>•</span>
-                      <span className="font-mono text-amber-400 font-semibold">{level.elo} Эло</span>
+                      <span className="font-mono text-amber-400 font-semibold">{lvl.elo} {language === 'en' ? 'Elo' : 'Эло'}</span>
                       {stat && stat.wins > 0 && (
                         <span className="text-[10px] text-emerald-400 font-mono">
-                          • {stat.wins} {stat.wins === 1 ? 'победа' : 'побед'}
+                          • {stat.wins} {language === 'en' ? (stat.wins === 1 ? 'win' : 'wins') : (stat.wins === 1 ? 'победа' : 'побед')}
                         </span>
                       )}
                     </div>
@@ -145,7 +146,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setExpandedLevelId(isExpanded ? null : level.id);
+                      setExpandedLevelId(isExpanded ? null : lvl.id);
                     }}
                     className="p-1 text-slate-400 hover:text-white"
                   >
@@ -157,37 +158,41 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
               {/* Collapsible Details */}
               {isExpanded && (
                 <div className="px-3 pb-3 pt-1 border-t border-slate-700/40 text-xs text-slate-300 space-y-2 bg-slate-900/40">
-                  <p className="text-slate-300 italic">{level.description}</p>
+                  <p className="text-slate-300 italic">{getLevelDescription(lvl, language)}</p>
 
                   <div className="grid grid-cols-1 gap-1 text-[11px] pt-1">
                     <div>
-                      <span className="text-slate-400">Ошибки бота: </span>
-                      <span className="text-rose-300">{level.typicalMistakes}</span>
+                      <span className="text-slate-400">{t('typicalMistakes')}: </span>
+                      <span className="text-rose-300">{getLevelMistakes(lvl, language)}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400">Поддержка тренера: </span>
-                      <span className="text-emerald-300">{level.coachSupport}</span>
+                      <span className="text-slate-400">{t('coachSupport')}: </span>
+                      <span className="text-emerald-300">{getLevelSupport(lvl, language)}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400">Условие перехода: </span>
-                      <span className="text-amber-300 font-semibold">{level.winRequirement}</span>
+                      <span className="text-slate-400">{t('winRequirement')}: </span>
+                      <span className="text-amber-300 font-semibold">{getLevelRequirement(lvl, language)}</span>
                     </div>
                   </div>
 
                   {!isCurrent && isUnlocked && (
                     <button
                       disabled={disabled}
-                      onClick={() => onSelectLevel(level)}
+                      onClick={() => onSelectLevel(lvl)}
                       className="w-full mt-2 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold rounded text-xs transition shadow"
                     >
-                      Играть с этим ботом ({level.elo} Эло)
+                      {language === 'en' ? `Play against ${botName} (${lvl.elo} Elo)` : `Играть с этим ботом (${lvl.elo} Эло)`}
                     </button>
                   )}
 
                   {!isUnlocked && (
                     <div className="w-full mt-2 py-1.5 px-2 bg-slate-800/80 border border-slate-700 text-slate-400 rounded text-center text-[11px] flex items-center justify-center gap-1.5">
                       <Lock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Победите бота {CHESS_LEVELS[level.id - 2]?.name || 'предыдущего уровня'}, чтобы открыть</span>
+                      <span>
+                        {language === 'en'
+                          ? `Defeat ${getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language)} to unlock`
+                          : `Победите бота ${getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language)}, чтобы открыть`}
+                      </span>
                     </div>
                   )}
                 </div>

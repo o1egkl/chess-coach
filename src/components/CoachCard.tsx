@@ -1,7 +1,9 @@
 import React from 'react';
 import { LevelConfig } from '../types/chess';
 import { OpeningInfo } from '../config/openings';
-import { Lightbulb, AlertTriangle, Eye, Compass, ShieldAlert, Sparkles } from 'lucide-react';
+import { getLevelName } from '../config/levels';
+import { useLanguage } from '../context/LanguageContext';
+import { Lightbulb, AlertTriangle, Eye, Compass, ShieldAlert } from 'lucide-react';
 
 interface CoachCardProps {
   level: LevelConfig;
@@ -36,6 +38,19 @@ export const CoachCard: React.FC<CoachCardProps> = ({
   takebacksRemaining,
   onTakeback,
 }) => {
+  const { language, t } = useLanguage();
+
+  const phaseLabel =
+    language === 'en'
+      ? gamePhase === 'Дебют'
+        ? 'Opening'
+        : gamePhase === 'Миттельшпиль'
+        ? 'Middlegame'
+        : 'Endgame'
+      : gamePhase;
+
+  const botName = getLevelName(level, language);
+
   return (
     <div className="bg-slate-800/90 backdrop-blur border border-slate-700/80 rounded-xl p-4 shadow-xl flex flex-col space-y-3">
       {/* Header */}
@@ -46,10 +61,11 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           </div>
           <div>
             <h3 className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
-              Интерактивный тренер
+              {t('coachTitle')}
             </h3>
             <span className="text-[11px] text-slate-400">
-              Фаза: <strong className="text-amber-400">{gamePhase}</strong>
+              {language === 'en' ? 'Phase: ' : 'Фаза: '}
+              <strong className="text-amber-400">{phaseLabel}</strong>
             </span>
           </div>
         </div>
@@ -63,10 +79,10 @@ export const CoachCard: React.FC<CoachCardProps> = ({
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 shadow-sm'
                 : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
-            title="Подсветить поля под боем и незащищенные фигуры"
+            title={language === 'en' ? 'Highlight threatened squares and hanging pieces' : 'Подсветить поля под боем и незащищенные фигуры'}
           >
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Радар угроз</span>
+            <span>{t('threatRadar')}</span>
           </button>
         )}
       </div>
@@ -77,7 +93,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <strong className="block font-bold text-rose-300 uppercase tracking-wide">
-              Предотвращение зевка (Blunder Shield)
+              {t('blunderShield')}
             </strong>
             <p>{blunderWarning}</p>
             {takebacksRemaining !== 0 && (
@@ -85,7 +101,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
                 onClick={onTakeback}
                 className="mt-1 px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold transition text-[11px]"
               >
-                Вернуть ход
+                {t('cancelMove')}
               </button>
             )}
           </div>
@@ -111,7 +127,9 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           {isBotThinking ? (
             <span className="text-amber-400 italic flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              Бот {level.name} обдумывает ответ...
+              {language === 'en'
+                ? `Bot ${botName} is thinking...`
+                : `Бот ${botName} обдумывает ответ...`}
             </span>
           ) : (
             coachMessage
@@ -131,7 +149,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           }`}
         >
           <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
-          <span>{hintStage >= 1 ? 'Намек получен' : '1. Намек (Nudge)'}</span>
+          <span>{hintStage >= 1 ? t('nudgeGiven') : t('nudgeBtn')}</span>
         </button>
 
         <button
@@ -144,15 +162,15 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           }`}
         >
           <Eye className="w-3.5 h-3.5" />
-          <span>{hintStage === 2 ? 'Ход показан' : '2. Показать ход'}</span>
+          <span>{hintStage === 2 ? t('solutionGiven') : t('solutionBtn')}</span>
         </button>
       </div>
 
       {/* Takeback info */}
       <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1">
-        <span>Возврат ходов:</span>
+        <span>{t('takebacksRemaining')}</span>
         <span className="font-semibold text-slate-200">
-          {takebacksRemaining === -1 ? 'Неограниченно' : `${takebacksRemaining} ост.`}
+          {takebacksRemaining === -1 ? t('unlimited') : `${takebacksRemaining} ${t('remainingShort')}`}
         </span>
       </div>
     </div>
