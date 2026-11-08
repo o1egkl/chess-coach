@@ -1,0 +1,132 @@
+name: Build Android APK & GitHub Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a GitHub Release with this APK'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: 📱 Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Set up Java / JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 🤖 Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 📜 Accept Android SDK Licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: 🟢 Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Node Dependencies
+        run: npm ci
+
+      - name: ⚡ Build Web Application (Vite + TypeScript)
+        run: npm run build
+
+      - name: 🔄 Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: 🔧 Grant Execute Permission for Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: 🔨 Compile Android APK (assembleDebug)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: 📋 Prepare APK Output Artifacts
+        id: prep
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          
+          mkdir -p build-artifacts
+          SOURCE_APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          
+          if [ -f "$SOURCE_APK" ]; then
+            cp "$SOURCE_APK" "build-artifacts/chess-coach-v${VERSION}-${SHORT_SHA}.apk"
+            cp "$SOURCE_APK" "build-artifacts/chess-coach-latest.apk"
+            echo "✅ Successfully generated and copied APK artifacts:"
+            ls -lh build-artifacts/
+          else
+            echo "❌ Error: APK not found at $SOURCE_APK"
+            exit 1
+          fi
+
+      - name: 📤 Upload APK to Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chess-coach-android-apk
+          path: build-artifacts/*.apk
+          retention-days: 30
+
+      - name: 🚀 Publish / Update "latest" Rolling Release on GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: 'Chess Coach — Android APK (Latest Build)'
+          body: |
+            ## 📱 Chess Coach — Автоматическая сборка для Android
+
+            Этот релиз автоматически собирается и обновляется через **GitHub Actions** при каждом пуше в ветку `main`.
+
+            - **Версия приложения:** `v${{ steps.prep.outputs.version }}`
+            - **Коммит:** [`${{ steps.prep.outputs.short_sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            - **Движок:** Встроенный Stockfish 16 WASM (**100% офлайн**)
+            - **Дата обновления:** ${{ github.event.head_commit.timestamp || 'Только что' }}
+
+            ---
+
+            ### 📥 Как установить на смартфон:
+            1. Скачайте файл **`chess-coach-latest.apk`** ниже в блоке **Assets**.
+            2. Откройте скачанный `.apk` файл на вашем Android-устройстве.
+            3. Если появится запрос на установку из неизвестных источников — разрешите его.
+            4. Приложение готово к игре!
+          files: build-artifacts/*.apk
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Publish Version Tagged Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-artifacts/*.apk
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
