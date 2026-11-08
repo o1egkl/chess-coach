@@ -39,10 +39,10 @@ jobs:
       - name: 📜 Accept Android SDK Licenses
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: 🟢 Set up Node.js 20
+      - name: 🟢 Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: 📦 Install Node Dependencies
@@ -55,6 +55,9 @@ jobs:
         run: |
           sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
+
+      - name: 📁 Ensure Android Assets Directory Exists
+        run: mkdir -p android/app/src/main/assets/public
 
       - name: 🔄 Copy Web Assets to Android
         run: npx cap copy android

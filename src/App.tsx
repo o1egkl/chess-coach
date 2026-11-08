@@ -51,6 +51,30 @@ export const App: React.FC = () => {
   const chessRef = useRef(chess);
   chessRef.current = chess;
 
+  // Dynamic square sizing: guarantees exactly 1:1 aspect ratio on mobile & desktop
+  const [boardSize, setBoardSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return 360;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const availableWidth = w < 768 ? Math.max(260, w - 44) : 480;
+    const availableHeight = Math.max(260, h * 0.52);
+    return Math.floor(Math.min(availableWidth, availableHeight, 480));
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const availableWidth = w < 768 ? Math.max(260, w - 44) : 480;
+      const availableHeight = Math.max(260, h * 0.52);
+      const newSize = Math.floor(Math.min(availableWidth, availableHeight, 480));
+      setBoardSize((prev) => (Math.abs(prev - newSize) > 2 ? newSize : prev));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [level, setLevel] = useState<LevelConfig>(CHESS_LEVELS[0]);
   const [playerColor, setPlayerColor] = useState<Color>('white');
   const [boardOrientation, setBoardOrientation] = useState<Color>('white');
@@ -714,7 +738,10 @@ export const App: React.FC = () => {
           {/* Center Column: Chessboard & Opponent/Player Cards */}
           <section className="flex flex-col items-center justify-center space-y-2 order-1 lg:order-2 w-full min-w-0">
             {/* Opponent Card (Top) */}
-            <div className="w-full max-w-[480px] bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs shadow-sm">
+            <div 
+              className="bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs shadow-sm mx-auto"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
               <div className="flex items-center gap-2">
                 <span className="text-xl">{level.avatar}</span>
                 <div>
@@ -746,9 +773,14 @@ export const App: React.FC = () => {
             </div>
 
             {/* Board with Eval Bar Locked Together */}
-            <div className="flex items-stretch justify-center gap-1.5 sm:gap-2.5 w-full max-w-[480px] mx-auto">
+            <div 
+              className="flex items-center justify-center gap-1.5 sm:gap-2 mx-auto"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
               {/* Eval Bar strictly matching board height */}
-              <EvalBar evaluation={evaluation} orientation={boardOrientation} />
+              <div style={{ height: `${boardSize}px` }} className="flex-shrink-0 flex items-center justify-center">
+                <EvalBar evaluation={evaluation} orientation={boardOrientation} />
+              </div>
 
               {/* Interactive Square Board */}
               <ChessBoard
@@ -759,11 +791,15 @@ export const App: React.FC = () => {
                 onUserMove={handleUserMove}
                 customShapes={customShapes}
                 theme={theme}
+                boardSizePx={boardSize}
               />
             </div>
 
             {/* Player Card (Bottom) */}
-            <div className="w-full max-w-[480px] bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs shadow-sm">
+            <div 
+              className="bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs shadow-sm mx-auto"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-emerald-600/30 border border-emerald-400/50 flex items-center justify-center font-bold text-emerald-400 text-xs">
                   👤
@@ -796,7 +832,10 @@ export const App: React.FC = () => {
             </div>
 
             {/* Quick In-Game Action Bar directly below the board */}
-            <div className="w-full max-w-[480px] grid grid-cols-4 gap-1.5 sm:gap-2">
+            <div 
+              className="grid grid-cols-4 gap-1.5 sm:gap-2 mx-auto"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
               <button
                 onClick={handleNewGame}
                 disabled={isBotThinking}

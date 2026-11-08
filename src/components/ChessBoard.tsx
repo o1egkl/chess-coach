@@ -15,6 +15,7 @@ interface ChessBoardProps {
   customShapes?: DrawShape[];
   theme?: BoardTheme;
   boardSize?: string;
+  boardSizePx?: number;
 }
 
 export const ChessBoard: React.FC<ChessBoardProps> = ({
@@ -26,9 +27,43 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   customShapes = [],
   theme = 'green',
   boardSize,
+  boardSizePx,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<Api | null>(null);
+
+  // Dynamic square sizing: guarantees exactly 1:1 aspect ratio on any mobile or desktop screen
+  const [internalSize, setInternalSize] = useState<number>(() => {
+    if (boardSizePx && boardSizePx > 0) return boardSizePx;
+    if (typeof window === 'undefined') return 360;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    return Math.floor(Math.max(260, Math.min(w - 44, h * 0.52, 480)));
+  });
+
+  const activeSize = (boardSizePx && boardSizePx > 0) ? boardSizePx : internalSize;
+
+  useEffect(() => {
+    if (boardSizePx && boardSizePx > 0) return;
+    const handleResize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const newSize = Math.floor(Math.max(260, Math.min(w - 44, h * 0.52, 480)));
+      setInternalSize((prev) => (Math.abs(prev - newSize) > 2 ? newSize : prev));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [boardSizePx]);
+
+  useEffect(() => {
+    if (groundRef.current) {
+      requestAnimationFrame(() => {
+        groundRef.current?.redrawAll();
+      });
+    }
+  }, [activeSize]);
 
   // Stable refs to prevent ANY stale closures in Chessground event listeners
   const onUserMoveRef = useRef(onUserMove);
@@ -180,25 +215,23 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     graphite: 'theme-graphite',
   }[theme];
 
-  const size = boardSize || 'min(480px, calc(100vw - 44px), 50vh)';
-
   return (
     <div 
-      className="flex-shrink-0 select-none relative max-w-full"
+      ref={wrapperRef}
+      className="flex-shrink-0 select-none relative max-w-full flex items-center justify-center mx-auto"
       style={{
-        width: size,
-        height: size,
-        maxWidth: '100%',
+        width: `${activeSize}px`,
+        height: `${activeSize}px`,
         aspectRatio: '1 / 1',
       }}
     >
       {/* Chessground Container - dedicated isolated element for Chessground DOM */}
       <div 
         ref={containerRef}
-        className={`w-full h-full shadow-2xl rounded-lg overflow-hidden border-2 sm:border-3 md:border-4 border-slate-800 relative ${themeClass}`}
+        className={`shadow-2xl rounded-lg overflow-hidden border-2 sm:border-3 md:border-4 border-slate-800 relative ${themeClass}`}
         style={{
-          width: '100%',
-          height: '100%',
+          width: `${activeSize}px`,
+          height: `${activeSize}px`,
           aspectRatio: '1 / 1',
         }}
       />

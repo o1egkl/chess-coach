@@ -57,9 +57,55 @@ cg-board {
 
 /* Ensure pieces scale smoothly and stay centered inside square tiles */
 .cg-wrap piece {
-  background-size: contain !important;
+  background-size: 88% 88% !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
+}
+
+/* Precise coordinate positioning inside the board */
+.cg-wrap coords {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  font-family: monospace, system-ui, sans-serif !important;
+  user-select: none !important;
+  pointer-events: none !important;
+  opacity: 0.85 !important;
+}
+
+.cg-wrap coords.files {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 1px !important;
+  width: 100% !important;
+  height: 14px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  padding-left: 0 !important;
+}
+
+.cg-wrap coords.files coord {
+  flex: 1 1 0% !important;
+  text-align: right !important;
+  padding-right: 3px !important;
+  line-height: 14px !important;
+}
+
+.cg-wrap coords.ranks {
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 2px !important;
+  width: 14px !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column-reverse !important;
+  padding-top: 0 !important;
+}
+
+.cg-wrap coords.ranks coord {
+  flex: 1 1 0% !important;
+  text-align: left !important;
+  line-height: 14px !important;
+  padding-top: 2px !important;
 }
 
 /* Mobile touch & native app feel */

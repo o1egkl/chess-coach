@@ -33,9 +33,9 @@ export const EvalBar: React.FC<EvalBarProps> = ({ evaluation, orientation }) => 
   const topPercent = orientation === 'white' ? 100 - whitePercent : whitePercent;
 
   return (
-    <div className="h-full flex flex-col items-center select-none py-0.5 flex-shrink-0 relative" title={`Оценка позиции: ${label}`}>
+    <div className="h-full flex flex-col items-center justify-center select-none py-0.5 flex-shrink-0 relative w-3.5 sm:w-4" title={`Оценка позиции: ${label}`}>
       {/* Outer wrapper */}
-      <div className="relative w-2 sm:w-3 h-full flex flex-col justify-between">
+      <div className="relative w-2 sm:w-2.5 h-full flex flex-col justify-between">
         {/* Thermometer pill with rounded overflow */}
         <div className="w-full h-full bg-slate-900 border border-slate-700/80 rounded-full overflow-hidden shadow-inner flex flex-col justify-between">
           {/* Black side */}
@@ -58,7 +58,7 @@ export const EvalBar: React.FC<EvalBarProps> = ({ evaluation, orientation }) => 
             transform: 'translateY(-50%)'
           }}
         >
-          <span className="text-[8px] sm:text-[9px] font-mono font-bold px-0.5 sm:px-1 py-0.2 rounded shadow bg-slate-950/95 text-amber-300 border border-slate-700/80 whitespace-nowrap">
+          <span className="text-[8px] sm:text-[9px] font-mono font-bold px-1 py-0.2 rounded shadow bg-slate-950/95 text-amber-300 border border-slate-750 whitespace-nowrap">
             {label}
           </span>
         </div>
