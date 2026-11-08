@@ -6,8 +6,10 @@ export interface LevelConfig {
   id: number;
   name: string;
   nameEn?: string;
+  nameTr?: string;
   rank: string;
   rankEn?: string;
+  rankTr?: string;
   elo: number;
   league: League;
   avatar: string;
@@ -19,12 +21,16 @@ export interface LevelConfig {
   uciElo?: number;
   description: string;
   descriptionEn?: string;
+  descriptionTr?: string;
   typicalMistakes: string;
   typicalMistakesEn?: string;
+  typicalMistakesTr?: string;
   coachSupport: string;
   coachSupportEn?: string;
+  coachSupportTr?: string;
   winRequirement: string;
   winRequirementEn?: string;
+  winRequirementTr?: string;
   takebacksAllowed: number; // -1 for infinite
   hasBlunderShield: boolean;
   hasHeatmap: boolean;
@@ -87,18 +93,23 @@ export interface Puzzle {
   id: string;
   title: string;
   titleEn?: string;
+  titleTr?: string;
   theme: string;
   themeEn?: string;
+  themeTr?: string;
   difficulty: 'Легко' | 'Средне' | 'Сложно';
   difficultyEn?: 'Easy' | 'Medium' | 'Hard';
+  difficultyTr?: 'Kolay' | 'Orta' | 'Zor';
   rating: number;
   playerColor: Color;
   fen: string;
   solutionUci: string[]; // sequence of moves in UCI: e.g. ["e7e8q", "a8e8", "d1e8"]
   description: string;
   descriptionEn?: string;
+  descriptionTr?: string;
   hint: string;
   hintEn?: string;
+  hintTr?: string;
 }
 
 export interface RatingHistoryPoint {

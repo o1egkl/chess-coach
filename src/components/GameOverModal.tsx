@@ -89,7 +89,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         {/* Rating Change Badge */}
         {typeof eloDelta === 'number' && typeof newElo === 'number' && (
           <div className="bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl flex items-center justify-center gap-3 font-mono text-xs">
-            <span className="text-slate-400">{language === 'en' ? 'Rating change:' : 'Изменение рейтинга:'}</span>
+            <span className="text-slate-400">
+              {language === 'ru' ? 'Изменение рейтинга:' : language === 'tr' ? 'Reyting değişimi:' : 'Rating change:'}
+            </span>
             <span
               className={`font-bold flex items-center gap-1 ${
                 eloDelta > 0 ? 'text-emerald-400' : eloDelta < 0 ? 'text-rose-400' : 'text-slate-300'
@@ -109,7 +111,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           <div className="bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 border border-amber-500/40 p-2.5 rounded-xl text-center space-y-0.5 animate-pulse">
             <div className="text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>{language === 'en' ? 'New Bot Unlocked!' : 'Разблокирован новый бот!'}</span>
+              <span>
+                {language === 'ru' ? 'Разблокирован новый бот!' : language === 'tr' ? 'Yeni Bot Açıldı!' : 'New Bot Unlocked!'}
+              </span>
             </div>
             <div className="text-white text-xs font-semibold">{unlockedLevelName}</div>
           </div>
@@ -119,9 +123,11 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center justify-center gap-3">
           <span className="text-2xl">{level.avatar}</span>
           <div className="text-left">
-            <div className="text-xs text-slate-400">{language === 'en' ? 'Opponent:' : 'Соперник:'}</div>
+            <div className="text-xs text-slate-400">
+              {language === 'ru' ? 'Соперник:' : language === 'tr' ? 'Rakip:' : 'Opponent:'}
+            </div>
             <div className="text-sm font-bold text-slate-100">
-              {language === 'en' ? 'Level' : 'Уровень'} {level.id}: {botName} ({level.elo} {language === 'en' ? 'Elo' : 'Эло'})
+              {language === 'ru' ? 'Уровень' : language === 'tr' ? 'Seviye' : 'Level'} {level.id}: {botName} ({level.elo} {language === 'ru' ? 'Эло' : 'Elo'})
             </div>
           </div>
         </div>

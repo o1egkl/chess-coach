@@ -16,6 +16,12 @@ export const LanguageModal: React.FC = () => {
     setIsLanguageModalOpen(false);
   };
 
+  const getSubtitle = () => {
+    if (language === 'ru') return 'Вы сможете изменить язык в любой момент в верхнем меню.';
+    if (language === 'tr') return 'Dili dilediğiniz zaman üst menüden değiştirebilirsiniz.';
+    return 'You can change the language anytime from the top navigation bar.';
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden p-6 text-slate-100">
@@ -34,15 +40,13 @@ export const LanguageModal: React.FC = () => {
               <Sparkles className="w-4 h-4 text-emerald-400" />
             </h2>
             <p className="text-xs text-slate-400">
-              Выберите язык / Select your language
+              Выберите язык / Select language / Dil seçin
             </p>
           </div>
         </div>
 
         <p className="text-xs text-slate-300 mb-5 leading-relaxed">
-          {language === 'ru'
-            ? 'Вы сможете изменить язык в любой момент в верхнем меню.'
-            : 'You can change the language anytime from the top navigation bar.'}
+          {getSubtitle()}
         </p>
 
         {/* Language Options */}
@@ -111,6 +115,41 @@ export const LanguageModal: React.FC = () => {
               </div>
             </div>
             {language === 'en' && (
+              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 shadow">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </div>
+            )}
+          </button>
+
+          {/* Turkish Option */}
+          <button
+            type="button"
+            onClick={() => handleSelectLanguage('tr')}
+            className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
+              language === 'tr'
+                ? 'bg-emerald-950/40 border-emerald-500/80 ring-2 ring-emerald-500/30 shadow-md'
+                : 'bg-slate-800/60 border-slate-700/80 hover:bg-slate-800 hover:border-slate-600'
+            }`}
+          >
+            <div className="flex items-center gap-3.5">
+              <span className="text-2xl" role="img" aria-label="Turkish Flag">
+                🇹🇷
+              </span>
+              <div>
+                <div className="font-bold text-sm text-white flex items-center gap-2">
+                  <span>Türkçe</span>
+                  {language === 'tr' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">
+                      Aktif
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Arayüz, satranç antrenörü, ipuçları ve kurallar
+                </div>
+              </div>
+            </div>
+            {language === 'tr' && (
               <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 shadow">
                 <Check className="w-3.5 h-3.5 stroke-[3]" />
               </div>

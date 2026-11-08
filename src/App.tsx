@@ -547,9 +547,11 @@ export const App: React.FC = () => {
     if (moveHistory.length > 0 && !chess.isGameOver()) {
       if (
         !window.confirm(
-          language === 'en'
-            ? 'Starting a new game with the chosen color. Continue?'
-            : 'Начать новую партию выбранным цветом?'
+          language === 'ru'
+            ? 'Начать новую партию выбранным цветом?'
+            : language === 'tr'
+            ? 'Seçilen renkle yeni bir oyuna başlansın mı? Devam edilsin mi?'
+            : 'Starting a new game with the chosen color. Continue?'
         )
       ) {
         return;
@@ -660,17 +662,31 @@ export const App: React.FC = () => {
             <button
               onClick={() => setIsLanguageModalOpen(true)}
               className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 px-2 py-1 rounded-lg border border-slate-700 hover:border-slate-600 text-xs text-slate-200 transition shadow-sm font-semibold"
-              title={language === 'en' ? 'Change Language' : 'Сменить язык'}
+              title={
+                language === 'ru'
+                  ? 'Сменить язык'
+                  : language === 'tr'
+                  ? 'Dili Değiştir'
+                  : 'Change Language'
+              }
             >
-              <span className="text-sm">{language === 'ru' ? '🇷🇺' : '🇬🇧'}</span>
-              <span className="font-mono text-[11px] uppercase font-bold">{language}</span>
+              <span className="text-sm">
+                {language === 'ru' ? '🇷🇺' : language === 'tr' ? '🇹🇷' : '🇬🇧'}
+              </span>
+              <span className="font-mono text-[11px] uppercase font-bold">{language.toUpperCase()}</span>
             </button>
 
             {/* Player Profile Button */}
             <button
               onClick={() => setIsProfileOpen(true)}
               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs transition shadow-sm"
-              title={language === 'en' ? 'Open Player Profile' : 'Открыть профиль и статистику игрока'}
+              title={
+                language === 'ru'
+                  ? 'Открыть профиль и статистику игрока'
+                  : language === 'tr'
+                  ? 'Oyuncu profilini ve istatistikleri aç'
+                  : 'Open Player Profile'
+              }
             >
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold">
                 👤
@@ -899,23 +915,35 @@ export const App: React.FC = () => {
             <div className="bg-slate-850/60 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-slate-200 text-[11px]">
                 <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{language === 'en' ? 'Key Chess Principles:' : 'Главные правила шахматиста:'}</span>
+                <span>
+                  {language === 'ru'
+                    ? 'Главные правила шахматиста:'
+                    : language === 'tr'
+                    ? 'Temel Satranç Kuralları:'
+                    : 'Key Chess Principles:'}
+                </span>
               </div>
               <ul className="list-disc list-inside space-y-0.5 text-slate-400 text-[10px] leading-relaxed">
                 <li>
-                  {language === 'en'
-                    ? 'Develop minor pieces (knights & bishops) before attacking.'
-                    : 'Развивайте коней и слонов перед атакой.'}
+                  {language === 'ru'
+                    ? 'Развивайте коней и слонов перед атакой.'
+                    : language === 'tr'
+                    ? 'Saldırıdan önce hafif taşları (at ve filleri) geliştirin.'
+                    : 'Develop minor pieces (knights & bishops) before attacking.'}
                 </li>
                 <li>
-                  {language === 'en'
-                    ? 'Castle early to keep your king safe.'
-                    : 'Сделайте рокировку до 10-го хода.'}
+                  {language === 'ru'
+                    ? 'Сделайте рокировку до 10-го хода.'
+                    : language === 'tr'
+                    ? 'Şahınızı güvenceye almak için erken rok yapın.'
+                    : 'Castle early to keep your king safe.'}
                 </li>
                 <li>
-                  {language === 'en'
-                    ? 'Check opponent checks and captures before each move.'
-                    : 'Проверяйте шахи и взятия соперника перед ходом.'}
+                  {language === 'ru'
+                    ? 'Проверяйте шахи и взятия соперника перед ходом.'
+                    : language === 'tr'
+                    ? 'Her hamleden önce rakibin şah ve taş alma tehditlerini kontrol edin.'
+                    : 'Check opponent checks and captures before each move.'}
                 </li>
               </ul>
             </div>
@@ -945,7 +973,14 @@ export const App: React.FC = () => {
       <PostGameModal
         isOpen={isPostGameModalOpen}
         result={gameOver?.result || 'draw'}
-        reason={gameOver?.reason || (language === 'en' ? 'Game in progress or finished' : 'Партия в процессе или завершена')}
+        reason={
+          gameOver?.reason ||
+          (language === 'ru'
+            ? 'Партия в процессе или завершена'
+            : language === 'tr'
+            ? 'Oyun devam ediyor veya bitti'
+            : 'Game in progress or finished')
+        }
         report={gameReport}
         isAnalyzing={isAnalyzingGame}
         analysisProgress={analysisProgress}

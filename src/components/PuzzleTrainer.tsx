@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
 import { DrawShape } from 'chessground/draw';
 import confetti from 'canvas-confetti';
-import { CHESS_PUZZLES, getPuzzleTitle, getPuzzleTheme, getPuzzleDescription, getPuzzleHint } from '../config/puzzles';
+import { CHESS_PUZZLES, getPuzzleTitle, getPuzzleTheme, getPuzzleDescription, getPuzzleHint, getPuzzleDifficulty } from '../config/puzzles';
 import { BoardTheme, Puzzle } from '../types/chess';
 import { ChessBoard } from './ChessBoard';
 import { sounds } from '../engine/soundService';
@@ -69,9 +69,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
         setUserRating(res.newRating);
         const hintText = getPuzzleHint(currentPuzzle, language);
         setFeedback(
-          language === 'en'
-            ? `🎉 Excellent! Puzzle solved (+${res.ratingDelta} to rating). ${hintText}`
-            : `🎉 Отлично! Задача решена (+${res.ratingDelta} к рейтингу). ${hintText}`
+          language === 'ru'
+            ? `🎉 Отлично! Задача решена (+${res.ratingDelta} к рейтингу). ${hintText}`
+            : language === 'tr'
+            ? `🎉 Mükemmel! Bulmaca çözüldü (reytinge +${res.ratingDelta}). ${hintText}`
+            : `🎉 Excellent! Puzzle solved (+${res.ratingDelta} to rating). ${hintText}`
         );
 
         try {
@@ -96,9 +98,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
           setChess(oppChess);
           setSolutionStep(nextStep + 1);
           setFeedback(
-            language === 'en'
-              ? 'Great move! Continue the tactical combination.'
-              : 'Отличный ход! Продолжайте комбинацию.'
+            language === 'ru'
+              ? 'Отличный ход! Продолжайте комбинацию.'
+              : language === 'tr'
+              ? 'Harika hamle! Kombinezona devam edin.'
+              : 'Great move! Continue the tactical combination.'
           );
         }, 400);
       }
@@ -110,9 +114,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       setStreak(res.newStreak);
       setUserRating(res.newRating);
       setFeedback(
-        language === 'en'
-          ? 'Incorrect move (-10 to rating). Try again or request a hint!'
-          : 'Неверный ход (-10 к рейтингу). Попробуйте еще раз или возьмите подсказку!'
+        language === 'ru'
+          ? 'Неверный ход (-10 к рейтингу). Попробуйте еще раз или возьмите подсказку!'
+          : language === 'tr'
+          ? 'Yanlış hamle (reytingden -10). Tekrar deneyin veya ipucu alın!'
+          : 'Incorrect move (-10 to rating). Try again or request a hint!'
       );
       // Revert after brief moment
       setTimeout(() => {
@@ -128,9 +134,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       const from = nextUci.substring(0, 2);
       setCustomShapes([{ orig: from as any, brush: 'yellow' }]);
       setFeedback(
-        language === 'en'
-          ? `💡 Hint: pay attention to the piece on ${from.toUpperCase()}.`
-          : `💡 Подсказка: обратите внимание на фигуру на поле ${from.toUpperCase()}.`
+        language === 'ru'
+          ? `💡 Подсказка: обратите внимание на фигуру на поле ${from.toUpperCase()}.`
+          : language === 'tr'
+          ? `💡 İpucu: ${from.toUpperCase()} karesindeki taşa dikkat edin.`
+          : `💡 Hint: pay attention to the piece on ${from.toUpperCase()}.`
       );
     }
   };
@@ -142,9 +150,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       const to = nextUci.substring(2, 4);
       setCustomShapes([{ orig: from as any, dest: to as any, brush: 'green' }]);
       setFeedback(
-        language === 'en'
-          ? `Solution move: ${from} → ${to}`
-          : `Решение хода: ${from} → ${to}`
+        language === 'ru'
+          ? `Решение хода: ${from} → ${to}`
+          : language === 'tr'
+          ? `Hamle çözümü: ${from} → ${to}`
+          : `Solution move: ${from} → ${to}`
       );
     }
   };
@@ -184,11 +194,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
           <div className="flex items-center gap-2 font-mono text-slate-300">
             <span className="flex items-center gap-1 text-amber-400">
               <Flame className="w-3.5 h-3.5" />
-              {language === 'en' ? 'Streak: ' : 'Серия: '}
+              {language === 'ru' ? 'Серия: ' : language === 'tr' ? 'Seri: ' : 'Streak: '}
               {streak}
             </span>
             <span className="px-2 py-0.5 bg-slate-800 rounded text-slate-200">
-              {language === 'en' ? 'Rating: ' : 'Рейтинг: '}
+              {language === 'ru' ? 'Рейтинг: ' : language === 'tr' ? 'Reyting: ' : 'Rating: '}
               {userRating}
             </span>
           </div>
@@ -210,15 +220,15 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
         {/* Turn Indicator */}
         <div className="w-full max-w-[480px] bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs">
           <span className="text-slate-300">
-            {language === 'en'
-              ? `${currentPuzzle.playerColor === 'white' ? 'White' : 'Black'} to move`
-              : `Ваш ход (${currentPuzzle.playerColor === 'white' ? 'Белые' : 'Черные'})`}
+            {language === 'ru'
+              ? `Ваш ход (${currentPuzzle.playerColor === 'white' ? 'Белые' : 'Черные'})`
+              : language === 'tr'
+              ? `Sıra sizde (${currentPuzzle.playerColor === 'white' ? 'Beyaz' : 'Siyah'})`
+              : `${currentPuzzle.playerColor === 'white' ? 'White' : 'Black'} to move`}
           </span>
           <span className="font-mono text-amber-400">
-            {language === 'en' ? 'Difficulty: ' : 'Сложность: '}
-            {language === 'en'
-              ? currentPuzzle.difficultyEn || currentPuzzle.difficulty
-              : currentPuzzle.difficulty}{' '}
+            {language === 'ru' ? 'Сложность: ' : language === 'tr' ? 'Zorluk: ' : 'Difficulty: '}
+            {getPuzzleDifficulty(currentPuzzle, language)}{' '}
             ({currentPuzzle.rating})
           </span>
         </div>
@@ -244,12 +254,16 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
             )}
             <span>
               {solved
-                ? language === 'en'
-                  ? 'Solved!'
-                  : 'Решено!'
-                : language === 'en'
-                ? 'Objective:'
-                : 'Цель тактики:'}
+                ? language === 'ru'
+                  ? 'Решено!'
+                  : language === 'tr'
+                  ? 'Çözüldü!'
+                  : 'Solved!'
+                : language === 'ru'
+                ? 'Цель тактики:'
+                : language === 'tr'
+                ? 'Hedef:'
+                : 'Objective:'}
             </span>
           </div>
           <p className="text-[12px]">{feedback}</p>
@@ -280,7 +294,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
                 className="py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-700"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>{language === 'en' ? 'Solution' : 'Показать ход'}</span>
+                <span>{language === 'ru' ? 'Показать ход' : language === 'tr' ? 'Çözüm' : 'Solution'}</span>
               </button>
 
               <button
@@ -288,14 +302,14 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
                 className="py-2 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-xl transition flex items-center justify-center gap-1.5"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span>{language === 'en' ? 'Retry' : 'Заново'}</span>
+                <span>{language === 'ru' ? 'Заново' : language === 'tr' ? 'Yeniden Dene' : 'Retry'}</span>
               </button>
 
               <button
                 onClick={handleNextPuzzle}
                 className="py-2 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded-xl transition flex items-center justify-center gap-1.5"
               >
-                <span>{language === 'en' ? 'Skip' : 'Пропустить'}</span>
+                <span>{language === 'ru' ? 'Пропустить' : language === 'tr' ? 'Geç' : 'Skip'}</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -306,7 +320,11 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
               onClick={onExit}
               className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition font-medium"
             >
-              {language === 'en' ? '← Back to Game vs Bot' : '← Вернуться к игре против бота'}
+              {language === 'ru'
+                ? '← Вернуться к игре против бота'
+                : language === 'tr'
+                ? '← Bot Oyununa Geri Dön'
+                : '← Back to Game vs Bot'}
             </button>
           </div>
         </div>

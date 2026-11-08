@@ -9,7 +9,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     navPuzzles: 'Задачи (Тренажёр)',
     navReview: 'Разбор',
     profileTitle: 'Профиль игрока',
-    chooseLanguage: 'Язык / Language',
+    chooseLanguage: 'Язык / Language / Dil',
     currentLanguageName: 'Русский',
 
     // Status Bar
@@ -136,12 +136,14 @@ export const translations: Record<Language, TranslationDictionary> = {
 
     // Language Modal
     welcomeLanguageTitle: 'Добро пожаловать в Chess Coach!',
-    welcomeLanguageDesc: 'Выберите предпочтительный язык интерфейса / Please choose your preferred interface language:',
+    welcomeLanguageDesc: 'Выберите предпочтительный язык интерфейса:',
     langRussian: 'Русский',
     langRussianDesc: 'Интерфейс, подсказки тренера и правила на русском',
     langEnglish: 'English',
     langEnglishDesc: 'Interface, coach hints and rules in English',
-    saveLanguage: 'Продолжить / Continue',
+    langTurkish: 'Türkçe',
+    langTurkishDesc: 'Arayüz, antrenör ipuçları ve kurallar Türkçe',
+    saveLanguage: 'Продолжить / Continue / Devam Et',
   },
 
   en: {
@@ -152,7 +154,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     navPuzzles: 'Tactics (Trainer)',
     navReview: 'Review',
     profileTitle: 'Player Profile',
-    chooseLanguage: 'Language / Язык',
+    chooseLanguage: 'Language / Язык / Dil',
     currentLanguageName: 'English',
 
     // Status Bar
@@ -279,11 +281,158 @@ export const translations: Record<Language, TranslationDictionary> = {
 
     // Language Modal
     welcomeLanguageTitle: 'Welcome to Chess Coach!',
-    welcomeLanguageDesc: 'Please choose your preferred interface language / Выберите язык интерфейса:',
+    welcomeLanguageDesc: 'Please choose your preferred interface language:',
     langRussian: 'Русский',
     langRussianDesc: 'Интерфейс, подсказки тренера и правила на русском',
     langEnglish: 'English',
     langEnglishDesc: 'Interface, coach hints and rules in English',
-    saveLanguage: 'Continue / Продолжить',
+    langTurkish: 'Türkçe',
+    langTurkishDesc: 'Arayüz, antrenör ipuçları ve kurallar Türkçe',
+    saveLanguage: 'Continue / Продолжить / Devam Et',
+  },
+
+  tr: {
+    // App Header & Navigation
+    appTitle: 'Chess Coach',
+    appSubtitle: '15 Seviye (400–2400 Elo)',
+    navPlay: 'Oyun',
+    navPuzzles: 'Taktikler (Antrenman)',
+    navReview: 'Analiz',
+    profileTitle: 'Oyuncu Profili',
+    chooseLanguage: 'Dil / Language / Язык',
+    currentLanguageName: 'Türkçe',
+
+    // Status Bar
+    turnWhite: 'Beyazın sırası',
+    turnBlack: 'Siyahın sırası',
+    yourTurn: 'Sizin sıranız',
+    botThinking: 'Bot düşünüyor...',
+    engineReady: 'Motor hazır',
+    engineLoading: 'Stockfish yükleniyor...',
+
+    // Level Selector
+    levelsTitle: '15 Zorluk Seviyesi',
+    leagueBeginner: 'Başlangıç (400–1000)',
+    leagueClub: 'Kulüp Oyuncuları (1150–1750)',
+    leagueMaster: 'Ustalar (1900–2420+)',
+    locked: 'Kilitli',
+    play: 'Oyna',
+    selected: 'Seçildi',
+    typicalMistakes: 'Tipik hatalar',
+    coachSupport: 'Antrenör desteği',
+    winRequirement: 'Geçiş şartı',
+
+    // Coach Card
+    coachTitle: 'Satranç Antrenörü',
+    threatRadar: 'Tehdit Radarı',
+    blunderShield: 'Hata Kalkanı (Blunder Shield)',
+    blunderAlert: 'Dikkat! Bu hamle taş kaybına veya pozisyonun bozulmasına yol açar.',
+    confirmMove: 'Yine de oyna',
+    cancelMove: 'Geri al',
+    nudgeBtn: '1. İpucu (Nudge)',
+    nudgeGiven: 'İpucu verildi',
+    solutionBtn: '2. Hamleyi Göster',
+    solutionGiven: 'Hamle gösterildi',
+    recommendedMove: 'Önerilen hamle: {move} ({from} karesinden {to} karesine)',
+    takebacksRemaining: 'Kalan hamle geri alma:',
+    unlimited: 'Sınırsız',
+    remainingShort: 'kaldı',
+    evalBar: 'Pozisyon Değerlendirmesi',
+    coachWelcome: 'Hoş geldiniz! Piyonlarla merkezi kontrol edin (e4/d4), hafif taşları geliştirin ve erken rok yapın.',
+
+    // Game Controls
+    newGame: 'Yeni Oyun',
+    takeback: 'Hamleyi Geri Al',
+    flipBoard: 'Tahtayı Çevir',
+    resign: 'Terk Et',
+    soundOn: 'Ses: Açık',
+    soundOff: 'Ses: Kapalı',
+    themeWood: 'Ahşap',
+    themeGreen: 'Yeşil',
+    themeBlue: 'Mavi',
+    themeGraphite: 'Grafit',
+
+    // Move History & Opening
+    moveHistory: 'Hamle Geçmişi',
+    opening: 'Açılış:',
+    noMovesYet: 'İlk hamlenizi yapın',
+
+    // Game Over Modal
+    victory: 'Zafer!',
+    defeat: 'Yenilgi',
+    draw: 'Beraberlik',
+    rematch: 'Rövanş',
+    reviewGame: 'Oyunu İncele',
+    nextLevel: 'Sonraki Seviye',
+    newRating: 'Yeni reytinginiz:',
+    reasonCheckmateWin: 'Şah ve mat! Harika bir galibiyet!',
+    reasonCheckmateLoss: 'Şah ve mat oldunuz. Oyunu antrenörle inceleyin!',
+    reasonStalemate: 'Pat — oyun berabere bitti.',
+    reasonDrawRepetition: 'Üç konum tekrarı ile beraberlik.',
+    reasonDrawMaterial: 'Yetersiz materyal nedeniyle beraberlik.',
+    reasonDraw50Moves: '50 hamle kuralı ile beraberlik.',
+    reasonResign: 'Oyunu terk ettiniz.',
+
+    // Post-Game Review
+    postGameTitle: 'Oyun Sonrası Analiz',
+    analyzingGame: 'Oyun Stockfish motoru ile analiz ediliyor...',
+    accuracy: 'Oyun Doğruluğu',
+    evalChart: 'Üstünlük Grafiği',
+    classificationBrilliant: 'Mükemmel (!!)',
+    classificationBest: 'En İyi (!)',
+    classificationBook: 'Teori (Kitap)',
+    classificationInaccuracy: 'Hassasiyetsiz (?!)',
+    classificationMistake: 'Hata (?)',
+    classificationBlunder: 'Büyük Hata (??)',
+    retryMistakes: 'Hatalarını Düzelt',
+    close: 'Kapat',
+
+    // Mistake Drill
+    drillTitle: 'Antrenman: Hatalarını Düzelt',
+    drillSubtitle: 'Hata yapılan pozisyonları tekrar oynayın',
+    mistakeNumber: 'Hata {current} / {total}',
+    youPlayedInGame: 'Oyunda {move} oynadınız ({evalDelta}). En güçlü hamleyi bulun!',
+    drillTryAgain: 'Tam olarak bu değil. Başka bir hamle deneyin!',
+    drillWellDone: 'Tebrikler! En güçlü hamleyi buldunuz!',
+    drillAllDone: 'Tüm hatalar incelendi! Taktiksel çalışma tamamlandı.',
+    drillNext: 'Sonraki Hata',
+    drillFinish: 'Antrenmanı Bitir',
+    drillNudge: 'İpucu',
+    drillSolution: 'Çözümü Göster',
+
+    // Puzzle Trainer
+    puzzlesHeader: 'Taktik Antrenörü',
+    puzzlesSubtitle: 'Taktik bulmacaları çözün ve hesaplama gücünüzü artırın',
+    streak: 'Galibiyet Serisi',
+    tacticalRating: 'Taktik Reytingi',
+    puzzleTurnWhite: 'Beyaz oynar ve kazanır',
+    puzzleTurnBlack: 'Siyah oynar ve kazanır',
+    puzzleHintBtn: 'İpucu',
+    puzzleNextBtn: 'Sonraki Bulmaca',
+    puzzleSuccess: 'Doğru! Harika bir taktiksel görüş!',
+    puzzleFailed: 'Yanlış. Tekrar deneyin!',
+
+    // Profile Modal
+    playerProfile: 'Oyuncu Profili',
+    fideElo: 'Mevcut Elo Reytingi',
+    gamesPlayed: 'Oynanan Oyunlar',
+    wins: 'Galibiyetler',
+    losses: 'Yenilgiler',
+    drawsCount: 'Beraberlikler',
+    winRate: 'Kazanma Oranı',
+    unlockedBots: 'Açılan Botlar',
+    ratingHistory: 'Reyting Geçmişi',
+    resetStats: 'İstatistikleri Sıfırla',
+
+    // Language Modal
+    welcomeLanguageTitle: 'Chess Coach\'a Hoş Geldiniz!',
+    welcomeLanguageDesc: 'Lütfen tercih ettiğiniz arayüz dilini seçin:',
+    langRussian: 'Русский',
+    langRussianDesc: 'Интерфейс, подсказки тренера и правила на русском',
+    langEnglish: 'English',
+    langEnglishDesc: 'Interface, coach hints and rules in English',
+    langTurkish: 'Türkçe',
+    langTurkishDesc: 'Arayüz, antrenör ipuçları ve kurallar Türkçe',
+    saveLanguage: 'Devam Et / Continue / Продолжить',
   },
 };

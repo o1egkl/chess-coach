@@ -17,12 +17,13 @@ const STORAGE_LANG_KEY = 'chess_coach_lang';
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem(STORAGE_LANG_KEY);
-    if (saved === 'ru' || saved === 'en') {
-      return saved;
+    if (saved === 'ru' || saved === 'en' || saved === 'tr') {
+      return saved as Language;
     }
     // Check browser language
-    if (typeof navigator !== 'undefined' && navigator.language && navigator.language.startsWith('en')) {
-      return 'en';
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      if (navigator.language.startsWith('tr')) return 'tr';
+      if (navigator.language.startsWith('en')) return 'en';
     }
     return 'ru';
   });

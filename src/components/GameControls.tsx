@@ -1,5 +1,6 @@
 import React from 'react';
 import { Color, BoardTheme } from '../types/chess';
+import { Language } from '../i18n/types';
 import { useLanguage } from '../context/LanguageContext';
 import { RotateCcw, Volume2, VolumeX, RefreshCw, Palette, Undo2 } from 'lucide-react';
 
@@ -58,7 +59,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
       {/* Color Selection & Board Flip */}
       <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
         <div className="flex items-center gap-1 text-xs">
-          <span className="text-slate-400 mr-1">{language === 'en' ? 'Play as:' : 'Играть за:'}</span>
+          <span className="text-slate-400 mr-1">
+            {language === 'ru' ? 'Играть за:' : language === 'tr' ? 'Renk:' : 'Play as:'}
+          </span>
           <button
             onClick={() => onSelectColor('white')}
             className={`w-7 h-7 rounded-md font-bold text-sm border flex items-center justify-center transition ${
@@ -66,7 +69,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 ? 'bg-slate-100 text-slate-900 border-emerald-400 shadow'
                 : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
             }`}
-            title={language === 'en' ? 'Play White' : 'Играть белыми'}
+            title={language === 'ru' ? 'Играть белыми' : language === 'tr' ? 'Beyaz ile Oyna' : 'Play White'}
           >
             ♔
           </button>
@@ -77,7 +80,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 ? 'bg-slate-900 text-slate-100 border-emerald-400 shadow ring-1 ring-emerald-400'
                 : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
             }`}
-            title={language === 'en' ? 'Play Black' : 'Играть черными'}
+            title={language === 'ru' ? 'Играть черными' : language === 'tr' ? 'Siyah ile Oyna' : 'Play Black'}
           >
             ♚
           </button>
@@ -87,7 +90,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <button
             onClick={onFlipBoard}
             className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition"
-            title={language === 'en' ? 'Flip board' : 'Перевернуть доску'}
+            title={language === 'ru' ? 'Перевернуть доску' : language === 'tr' ? 'Tahtayı Çevir' : 'Flip board'}
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -106,15 +109,15 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
         <div className="flex items-center gap-1">
           <Palette className="w-3.5 h-3.5 text-slate-400" />
-          <span>{language === 'en' ? 'Theme:' : 'Тема доски:'}</span>
+          <span>{language === 'ru' ? 'Тема доски:' : language === 'tr' ? 'Tema:' : 'Theme:'}</span>
         </div>
         <div className="flex items-center gap-1">
           {(['green', 'wood', 'blue', 'graphite'] as BoardTheme[]).map((thm) => {
-            const labels: Record<BoardTheme, { ru: string; en: string }> = {
-              green: { ru: 'Турнир', en: 'Green' },
-              wood: { ru: 'Дерево', en: 'Wood' },
-              blue: { ru: 'Синий', en: 'Blue' },
-              graphite: { ru: 'Графит', en: 'OLED' },
+            const labels: Record<BoardTheme, Record<Language, string>> = {
+              green: { ru: 'Турнир', en: 'Green', tr: 'Yeşil' },
+              wood: { ru: 'Дерево', en: 'Wood', tr: 'Ahşap' },
+              blue: { ru: 'Синий', en: 'Blue', tr: 'Mavi' },
+              graphite: { ru: 'Графит', en: 'OLED', tr: 'Grafit' },
             };
             return (
               <button
@@ -126,7 +129,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                     : 'bg-slate-700/60 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {labels[thm][language]}
+                {labels[thm][language] || labels[thm].ru}
               </button>
             );
           })}

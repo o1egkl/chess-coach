@@ -47,6 +47,12 @@ export const CoachCard: React.FC<CoachCardProps> = ({
         : gamePhase === 'Миттельшпиль'
         ? 'Middlegame'
         : 'Endgame'
+      : language === 'tr'
+      ? gamePhase === 'Дебют'
+        ? 'Açılış'
+        : gamePhase === 'Миттельшпиль'
+        ? 'Oyun Ortası'
+        : 'Oyun Sonu'
       : gamePhase;
 
   const botName = getLevelName(level, language);
@@ -64,7 +70,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
               {t('coachTitle')}
             </h3>
             <span className="text-[11px] text-slate-400">
-              {language === 'en' ? 'Phase: ' : 'Фаза: '}
+              {language === 'ru' ? 'Фаза: ' : language === 'tr' ? 'Aşama: ' : 'Phase: '}
               <strong className="text-amber-400">{phaseLabel}</strong>
             </span>
           </div>
@@ -79,7 +85,13 @@ export const CoachCard: React.FC<CoachCardProps> = ({
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 shadow-sm'
                 : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
-            title={language === 'en' ? 'Highlight threatened squares and hanging pieces' : 'Подсветить поля под боем и незащищенные фигуры'}
+            title={
+              language === 'ru'
+                ? 'Подсветить поля под боем и незащищенные фигуры'
+                : language === 'tr'
+                ? 'Tehdit altındaki kareleri ve korumasız taşları vurgula'
+                : 'Highlight threatened squares and hanging pieces'
+            }
           >
             <ShieldAlert className="w-3.5 h-3.5" />
             <span>{t('threatRadar')}</span>
@@ -127,9 +139,11 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           {isBotThinking ? (
             <span className="text-amber-400 italic flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              {language === 'en'
-                ? `Bot ${botName} is thinking...`
-                : `Бот ${botName} обдумывает ответ...`}
+              {language === 'ru'
+                ? `Бот ${botName} обдумывает ответ...`
+                : language === 'tr'
+                ? `Bot ${botName} düşünüyor...`
+                : `Bot ${botName} is thinking...`}
             </span>
           ) : (
             coachMessage

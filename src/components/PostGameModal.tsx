@@ -72,9 +72,11 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
-                {language === 'en'
-                  ? `Game against bot ${botName} (${level.elo} Elo)`
-                  : `Партия против бота ${botName} (${level.elo} Эло)`}
+                {language === 'ru'
+                  ? `Партия против бота ${botName} (${level.elo} Эло)`
+                  : language === 'tr'
+                  ? `Bot ${botName} ile oyun (${level.elo} Elo)`
+                  : `Game against bot ${botName} (${level.elo} Elo)`}
               </p>
             </div>
           </div>
@@ -112,7 +114,7 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
               <div className="bg-slate-950/70 border border-emerald-500/30 p-3.5 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-medium">
-                    {language === 'en' ? 'You (Player)' : 'Вы (Игрок)'}
+                    {language === 'ru' ? 'Вы (Игрок)' : language === 'tr' ? 'Siz (Oyuncu)' : 'You (Player)'}
                   </span>
                   <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono mt-0.5">
                     {playerAcc}%
@@ -128,7 +130,7 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
               <div className="bg-slate-950/70 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-400 font-medium">
-                    {language === 'en' ? `Bot (${botName})` : `Бот (${botName})`}
+                    {language === 'ru' ? `Бот (${botName})` : language === 'tr' ? `Bot (${botName})` : `Bot (${botName})`}
                   </span>
                   <div className="text-2xl sm:text-3xl font-extrabold text-slate-200 font-mono mt-0.5">
                     {botAcc}%
@@ -146,49 +148,77 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
           {report && !isAnalyzing && playerCounts && botCounts && (
             <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl space-y-2">
               <span className="text-xs font-bold text-slate-300 block">
-                {language === 'en' ? 'Move Quality Breakdown:' : 'Статистика качества ходов:'}
+                {language === 'ru'
+                  ? 'Статистика качества ходов:'
+                  : language === 'tr'
+                  ? 'Hamle Kalitesi Dağılımı:'
+                  : 'Move Quality Breakdown:'}
               </span>
               <div className="grid grid-cols-6 gap-1.5 text-center text-xs">
                 {/* Brilliant */}
                 <div className="bg-cyan-500/10 border border-cyan-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-cyan-400">!! {language === 'en' ? 'Brilliant' : 'Блест.'}</div>
+                  <div className="text-[10px] font-bold text-cyan-400">
+                    !! {language === 'ru' ? 'Блест.' : language === 'tr' ? 'Mükemmel' : 'Brilliant'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['!!']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['!!']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['!!']}
+                  </div>
                 </div>
 
                 {/* Best */}
                 <div className="bg-emerald-500/10 border border-emerald-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-emerald-400">! {language === 'en' ? 'Best' : 'Лучшие'}</div>
+                  <div className="text-[10px] font-bold text-emerald-400">
+                    ! {language === 'ru' ? 'Лучшие' : language === 'tr' ? 'En İyi' : 'Best'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['!']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['!']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['!']}
+                  </div>
                 </div>
 
                 {/* Book */}
                 <div className="bg-purple-500/10 border border-purple-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-purple-400">{language === 'en' ? 'Book' : 'Книга'}</div>
+                  <div className="text-[10px] font-bold text-purple-400">
+                    {language === 'ru' ? 'Книга' : language === 'tr' ? 'Kitap' : 'Book'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['book']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['book']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['book']}
+                  </div>
                 </div>
 
                 {/* Inaccuracies */}
                 <div className="bg-amber-500/10 border border-amber-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-amber-400">?! {language === 'en' ? 'Inacc.' : 'Неточн.'}</div>
+                  <div className="text-[10px] font-bold text-amber-400">
+                    ?! {language === 'ru' ? 'Неточн.' : language === 'tr' ? 'Hassas Değil' : 'Inacc.'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['?!']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['?!']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['?!']}
+                  </div>
                 </div>
 
                 {/* Mistakes */}
                 <div className="bg-orange-500/10 border border-orange-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-orange-400">? {language === 'en' ? 'Mistake' : 'Ошибки'}</div>
+                  <div className="text-[10px] font-bold text-orange-400">
+                    ? {language === 'ru' ? 'Ошибки' : language === 'tr' ? 'Hata' : 'Mistake'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['?']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['?']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['?']}
+                  </div>
                 </div>
 
                 {/* Blunders */}
                 <div className="bg-red-500/10 border border-red-500/30 p-1.5 rounded-lg">
-                  <div className="text-[10px] font-bold text-red-400">?? {language === 'en' ? 'Blunder' : 'Зевки'}</div>
+                  <div className="text-[10px] font-bold text-red-400">
+                    ?? {language === 'ru' ? 'Зевки' : language === 'tr' ? 'Büyük Hata' : 'Blunder'}
+                  </div>
                   <div className="font-mono font-extrabold text-white text-sm">{playerCounts['??']}</div>
-                  <div className="text-[9px] text-slate-500 font-mono">{language === 'en' ? 'bot:' : 'бот:'} {botCounts['??']}</div>
+                  <div className="text-[9px] text-slate-500 font-mono">
+                    {language === 'ru' ? 'бот:' : 'bot:'} {botCounts['??']}
+                  </div>
                 </div>
               </div>
             </div>
@@ -208,8 +238,20 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
                 <div className="bg-slate-850 border border-slate-750 p-2.5 rounded-xl text-xs space-y-1 font-mono">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-200">
-                      {language === 'en' ? 'Move ' : 'Ход '}
-                      {selectedMove.moveNumber}. {selectedMove.color === 'white' ? (language === 'en' ? 'White' : 'Белые') : (language === 'en' ? 'Black' : 'Черные')}: {selectedMove.san}
+                      {language === 'ru' ? 'Ход ' : language === 'tr' ? 'Hamle ' : 'Move '}
+                      {selectedMove.moveNumber}.{' '}
+                      {selectedMove.color === 'white'
+                        ? language === 'ru'
+                          ? 'Белые'
+                          : language === 'tr'
+                          ? 'Beyaz'
+                          : 'White'
+                        : language === 'ru'
+                        ? 'Черные'
+                        : language === 'tr'
+                        ? 'Siyah'
+                        : 'Black'}
+                      : {selectedMove.san}
                     </span>
                     <span
                       className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${

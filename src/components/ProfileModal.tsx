@@ -40,18 +40,33 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const getLeague = (elo: number) => {
     if (elo < 1100) {
       return {
-        name: language === 'en' ? 'Novice League' : 'Лига Новичков',
+        name:
+          language === 'ru'
+            ? 'Лига Новичков'
+            : language === 'tr'
+            ? 'Başlangıç Ligi'
+            : 'Novice League',
         color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
       };
     }
     if (elo < 1800) {
       return {
-        name: language === 'en' ? 'Club League' : 'Клубная Лига',
+        name:
+          language === 'ru'
+            ? 'Клубная Лига'
+            : language === 'tr'
+            ? 'Kulüp Ligi'
+            : 'Club League',
         color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
       };
     }
     return {
-      name: language === 'en' ? 'Master League' : 'Мастерская Лига',
+      name:
+        language === 'ru'
+          ? 'Мастерская Лига'
+          : language === 'tr'
+          ? 'Usta Ligi'
+          : 'Master League',
       color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
     };
   };
@@ -105,7 +120,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <button
                       onClick={() => setIsEditingName(true)}
                       className="text-slate-400 hover:text-white"
-                      title={language === 'en' ? 'Edit name' : 'Изменить имя'}
+                      title={language === 'ru' ? 'Изменить имя' : language === 'tr' ? 'İsmi düzenle' : 'Edit name'}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -117,11 +132,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               </div>
               <div className="flex items-center gap-3 text-xs text-slate-400 font-mono mt-0.5">
                 <span>
-                  {language === 'en' ? 'Elo Rating: ' : 'Рейтинг Эло: '}
+                  {language === 'ru' ? 'Рейтинг Эло: ' : language === 'tr' ? 'Elo Reytingi: ' : 'Elo Rating: '}
                   <strong className="text-emerald-400 text-sm">{profile.elo}</strong>
                 </span>
                 <span>
-                  • {language === 'en' ? 'Peak: ' : 'Пик: '}
+                  • {language === 'ru' ? 'Пик: ' : language === 'tr' ? 'Zirve: ' : 'Peak: '}
                   <strong className="text-slate-200">{profile.highestElo}</strong>
                 </span>
               </div>
@@ -142,16 +157,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-xl">
               <span className="text-[10px] text-slate-400 uppercase font-semibold">
-                {language === 'en' ? 'Games / Win Rate' : 'Партии / Винрейт'}
+                {language === 'ru'
+                  ? 'Партии / Винрейт'
+                  : language === 'tr'
+                  ? 'Oyunlar / Kazanma Oranı'
+                  : 'Games / Win Rate'}
               </span>
               <div className="text-xl font-mono font-bold text-white mt-1">
                 {totalGames}{' '}
                 <span className="text-xs text-emerald-400">({winRate}%)</span>
               </div>
               <span className="text-[10px] text-slate-500 font-mono">
-                {language === 'en'
-                  ? `${wins}W / ${losses}L / ${draws}D`
-                  : `${wins}В / ${losses}П / ${draws}Н`}
+                {language === 'ru'
+                  ? `${wins}В / ${losses}П / ${draws}Н`
+                  : language === 'tr'
+                  ? `${wins}G / ${losses}M / ${draws}B`
+                  : `${wins}W / ${losses}L / ${draws}D`}
               </span>
             </div>
 
@@ -163,7 +184,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {avgAccuracy}%
               </div>
               <span className="text-[10px] text-slate-500 font-mono">
-                {language === 'en' ? `Best: ${bestAccuracy}%` : `Лучшая: ${bestAccuracy}%`}
+                {language === 'ru'
+                  ? `Лучшая: ${bestAccuracy}%`
+                  : language === 'tr'
+                  ? `En İyi: ${bestAccuracy}%`
+                  : `Best: ${bestAccuracy}%`}
               </span>
             </div>
 
@@ -175,9 +200,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {profile.tacticsRating}
               </div>
               <span className="text-[10px] text-slate-500 font-mono">
-                {language === 'en'
-                  ? `Solved: ${profile.solvedPuzzleIds.length}`
-                  : `Решено задач: ${profile.solvedPuzzleIds.length}`}
+                {language === 'ru'
+                  ? `Решено задач: ${profile.solvedPuzzleIds.length}`
+                  : language === 'tr'
+                  ? `Çözülen: ${profile.solvedPuzzleIds.length}`
+                  : `Solved: ${profile.solvedPuzzleIds.length}`}
               </span>
             </div>
 
@@ -190,9 +217,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {profile.tacticsStreak}
               </div>
               <span className="text-[10px] text-slate-500 font-mono">
-                {language === 'en'
-                  ? `Record: ${profile.tacticsHighestStreak}`
-                  : `Рекорд: ${profile.tacticsHighestStreak}`}
+                {language === 'ru'
+                  ? `Рекорд: ${profile.tacticsHighestStreak}`
+                  : language === 'tr'
+                  ? `Rekor: ${profile.tacticsHighestStreak}`
+                  : `Record: ${profile.tacticsHighestStreak}`}
               </span>
             </div>
           </div>
@@ -205,17 +234,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-200 flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                {language === 'en'
-                  ? 'Progression Across 15 Bot Levels'
-                  : 'Прогресс прохождения 15 уровней ботов'}
+                {language === 'ru'
+                  ? 'Прогресс прохождения 15 уровней ботов'
+                  : language === 'tr'
+                  ? '15 Bot Seviyesinde İlerleme'
+                  : 'Progression Across 15 Bot Levels'}
               </span>
               <button
                 onClick={handleUnlockAll}
                 className="text-[10px] text-slate-400 hover:text-emerald-400 underline"
               >
-                {language === 'en'
-                  ? 'Unlock all levels (Free mode)'
-                  : 'Разблокировать все уровни (Свободный режим)'}
+                {language === 'ru'
+                  ? 'Разблокировать все уровни (Свободный режим)'
+                  : language === 'tr'
+                  ? 'Tüm seviyelerin kilidini aç (Serbest mod)'
+                  : 'Unlock all levels (Free mode)'}
               </button>
             </div>
 
@@ -260,18 +293,32 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <div className="text-xl mb-0.5">{bot.avatar}</div>
                     <div className="font-bold text-white text-[11px] truncate">{botName}</div>
                     <div className="text-[9px] text-amber-400 font-mono">
-                      {bot.elo} {language === 'en' ? 'Elo' : 'Эло'}
+                      {bot.elo} {language === 'ru' ? 'Эло' : 'Elo'}
                     </div>
 
                     {isUnlocked && (
                       <div className="mt-1.5 pt-1 border-t border-slate-800 text-[9px] text-slate-400 font-mono">
                         {isBeaten ? (
                           <span className="text-emerald-300 font-semibold">
-                            {stat.wins} {language === 'en' ? (stat.wins === 1 ? 'win' : 'wins') : 'побед'}
+                            {stat.wins}{' '}
+                            {language === 'ru'
+                              ? 'побед'
+                              : language === 'tr'
+                              ? 'galibiyet'
+                              : stat.wins === 1
+                              ? 'win'
+                              : 'wins'}
                           </span>
                         ) : (
                           <span>
-                            {stat.gamesPlayed} {language === 'en' ? (stat.gamesPlayed === 1 ? 'game' : 'games') : 'игр'}
+                            {stat.gamesPlayed}{' '}
+                            {language === 'ru'
+                              ? 'игр'
+                              : language === 'tr'
+                              ? 'oyun'
+                              : stat.gamesPlayed === 1
+                              ? 'game'
+                              : 'games'}
                           </span>
                         )}
                       </div>
@@ -285,27 +332,41 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           {/* Recent Games Table */}
           <div className="space-y-2">
             <span className="text-xs font-bold text-slate-200 block">
-              {language === 'en'
-                ? `Recent Games History (${profile.games.length}):`
-                : `История последних партий (${profile.games.length}):`}
+              {language === 'ru'
+                ? `История последних партий (${profile.games.length}):`
+                : language === 'tr'
+                ? `Son Oyun Geçmişi (${profile.games.length}):`
+                : `Recent Games History (${profile.games.length}):`}
             </span>
 
             {profile.games.length === 0 ? (
               <div className="p-4 text-center text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800">
-                {language === 'en'
-                  ? 'No games completed yet. Play your first match against Novice!'
-                  : 'Вы ещё не завершили ни одной партии. Сыграйте с первым ботом «Новичок»!'}
+                {language === 'ru'
+                  ? 'Вы ещё не завершили ни одной партии. Сыграйте с первым ботом «Новичок»!'
+                  : language === 'tr'
+                  ? 'Henüz tamamlanan oyun yok. İlk maçınızı Çaylak botuna karşı oynayın!'
+                  : 'No games completed yet. Play your first match against Novice!'}
               </div>
             ) : (
               <div className="bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden text-xs">
                 <table className="w-full text-left">
                   <thead className="bg-slate-900 border-b border-slate-800 text-[10px] text-slate-400 uppercase font-mono">
                     <tr>
-                      <th className="p-2 sm:px-3">{language === 'en' ? 'Opponent' : 'Соперник'}</th>
-                      <th className="p-2 sm:px-3">{language === 'en' ? 'Result' : 'Результат'}</th>
-                      <th className="p-2 sm:px-3">{language === 'en' ? 'Elo' : 'Эло'}</th>
-                      <th className="p-2 sm:px-3 hidden sm:table-cell">{language === 'en' ? 'Accuracy' : 'Точность'}</th>
-                      <th className="p-2 sm:px-3 hidden sm:table-cell">{language === 'en' ? 'Moves' : 'Ходов'}</th>
+                      <th className="p-2 sm:px-3">
+                        {language === 'ru' ? 'Соперник' : language === 'tr' ? 'Rakip' : 'Opponent'}
+                      </th>
+                      <th className="p-2 sm:px-3">
+                        {language === 'ru' ? 'Результат' : language === 'tr' ? 'Sonuç' : 'Result'}
+                      </th>
+                      <th className="p-2 sm:px-3">
+                        {language === 'ru' ? 'Эло' : 'Elo'}
+                      </th>
+                      <th className="p-2 sm:px-3 hidden sm:table-cell">
+                        {language === 'ru' ? 'Точность' : language === 'tr' ? 'Doğruluk' : 'Accuracy'}
+                      </th>
+                      <th className="p-2 sm:px-3 hidden sm:table-cell">
+                        {language === 'ru' ? 'Ходов' : language === 'tr' ? 'Hamle' : 'Moves'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850">
@@ -316,7 +377,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                           <div>
                             <span className="font-semibold text-slate-200">{game.botName}</span>
                             <span className="block text-[9px] text-slate-500 font-mono">
-                              {game.botElo} {language === 'en' ? 'Elo' : 'Эло'}
+                              {game.botElo} {language === 'ru' ? 'Эло' : 'Elo'}
                             </span>
                           </div>
                         </td>
@@ -350,7 +411,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             {game.eloDelta > 0 ? `+${game.eloDelta}` : game.eloDelta}
                           </span>
                           <span className="text-[9px] text-slate-500 block">
-                            {language === 'en' ? `(now ${game.eloAfter})` : `(стало ${game.eloAfter})`}
+                            {language === 'ru'
+                              ? `(стало ${game.eloAfter})`
+                              : language === 'tr'
+                              ? `(şimdi ${game.eloAfter})`
+                              : `(now ${game.eloAfter})`}
                           </span>
                         </td>
                         <td className="p-2 sm:px-3 font-mono hidden sm:table-cell text-slate-300">
