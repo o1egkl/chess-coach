@@ -1,0 +1,7 @@
+dist-electron/
+android/
+release/
+scripts/
+.github/
+dist/
+node_modules/
