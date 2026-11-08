@@ -1,4 +1,4 @@
-name: Build Android APK & GitHub Release
+name: Build Android APK, Windows (.exe) & GitHub Release
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       create_release:
-        description: 'Create a GitHub Release with this APK'
+        description: 'Force recreate GitHub Release'
         type: boolean
         default: false
 
@@ -98,43 +98,87 @@ jobs:
           path: build-artifacts/*.apk
           retention-days: 30
 
+  build-windows:
+    name: 💻 Build Windows Desktop (.exe)
+    runs-on: windows-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 📦 Install Node Dependencies
+        run: npm install
+
+      - name: ⚡ Package Electron Windows (.exe)
+        run: npm run electron:build
+
+      - name: 📋 Prepare Windows Executable Artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build-artifacts
+          Copy-Item "dist-electron/Chess Coach Setup *.exe" "build-artifacts/Chess-Coach-Setup-latest.exe"
+          Copy-Item "dist-electron/Chess Coach *.exe" "build-artifacts/Chess-Coach-Portable-latest.exe"
+          Get-ChildItem -Path build-artifacts
+
+      - name: 📤 Upload Windows EXEs to Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chess-coach-windows-exe
+          path: build-artifacts/*.exe
+          retention-days: 30
+
+  publish-release:
+    name: 🚀 Publish Unified Release
+    needs: [build-android, build-windows]
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Download Android APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: chess-coach-android-apk
+          path: release-assets
+
+      - name: 📥 Download Windows EXE Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: chess-coach-windows-exe
+          path: release-assets
+
+      - name: 📋 List Release Assets
+        run: ls -lh release-assets/
+
       - name: 🚀 Publish / Update "latest" Rolling Release on GitHub
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: 'Chess Coach — Android APK (Latest Build)'
+          name: 'Chess Coach — Android APK & Windows Desktop (.exe)'
           body: |
-            ## 📱 Chess Coach — Автоматическая сборка для Android
+            ## ♟️ Chess Coach — Официальные сборки приложения
 
             Этот релиз автоматически собирается и обновляется через **GitHub Actions** при каждом пуше в ветку `main`.
 
-            - **Версия приложения:** `v${{ steps.prep.outputs.version }}`
-            - **Коммит:** [`${{ steps.prep.outputs.short_sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            - **Коммит:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
             - **Движок:** Встроенный Stockfish 16 WASM (**100% офлайн**)
-            - **Дата обновления:** ${{ github.event.head_commit.timestamp || 'Только что' }}
+            - **Дата сборки:** ${{ github.event.head_commit.timestamp || 'Только что' }}
 
             ---
 
-            ### 📥 Как установить на смартфон:
-            1. Скачайте файл **`chess-coach-latest.apk`** ниже в блоке **Assets**.
-            2. Откройте скачанный `.apk` файл на вашем Android-устройстве.
-            3. Если появится запрос на установку из неизвестных источников — разрешите его.
-            4. Приложение готово к игре!
-          files: build-artifacts/*.apk
+            ### 📱 Для Android:
+            - **[`chess-coach-latest.apk`](https://github.com/${{ github.repository }}/releases/download/latest/chess-coach-latest.apk)** — прямая ссылка на скачивание APK.
+
+            ### 💻 Для Windows:
+            - **[`Chess-Coach-Portable-latest.exe`](https://github.com/${{ github.repository }}/releases/download/latest/Chess-Coach-Portable-latest.exe)** — портативная версия (не требует установки, запустил и играй).
+            - **[`Chess-Coach-Setup-latest.exe`](https://github.com/${{ github.repository }}/releases/download/latest/Chess-Coach-Setup-latest.exe)** — стандартный установщик с ярлыком на рабочий стол.
+          files: release-assets/*
           prerelease: false
           make_latest: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🏷️ Publish Version Tagged Release
-        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build-artifacts/*.apk
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
