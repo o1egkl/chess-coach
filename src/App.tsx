@@ -405,9 +405,13 @@ export const App: React.FC = () => {
     setAnalysisProgress(0);
 
     try {
-      const report = await analyzeGame(moveHistory, (pct) => {
-        setAnalysisProgress(pct);
-      });
+      const report = await analyzeGame(
+        moveHistory,
+        (pct) => {
+          setAnalysisProgress(pct);
+        },
+        playerColor
+      );
       setGameReport(report);
 
       // Update recent game accuracy in storage

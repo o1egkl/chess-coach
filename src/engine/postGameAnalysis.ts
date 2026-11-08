@@ -85,10 +85,19 @@ function evaluateFen(
             if (latestMate !== null) latestMate = -latestMate;
           }
 
+          let fallbackMove = '';
+          try {
+            const c = new Chess(fen);
+            const legal = c.moves({ verbose: true });
+            if (legal.length > 0) {
+              fallbackMove = `${legal[0].from}${legal[0].to}${legal[0].promotion || ''}`;
+            }
+          } catch {}
+
           resolve({
             cp: normalizedCp,
             mate: latestMate,
-            bestMove: bestMove || 'e2e4',
+            bestMove: bestMove && bestMove !== '(none)' ? bestMove : fallbackMove,
           });
         }
       }
@@ -103,7 +112,8 @@ function evaluateFen(
 // Main game review function
 export async function analyzeGame(
   moves: MoveRecord[],
-  onProgress?: (progressPercent: number) => void
+  onProgress?: (progressPercent: number) => void,
+  playerColor?: Color
 ): Promise<GameReport> {
   if (moves.length === 0) {
     return {
@@ -258,9 +268,16 @@ export async function analyzeGame(
   const blackAccuracy = calculateAccuracy(blackLosses);
 
   // Mistakes to retry: filter player's ? and ??
-  const mistakesToRetry = moveAnalyses.filter(
-    (m) => m.classification === '??' || m.classification === '?'
+  let mistakesToRetry = moveAnalyses.filter(
+    (m) => (!playerColor || m.color === playerColor) && (m.classification === '??' || m.classification === '?')
   );
+
+  // If the player made no ?? or ?, check for inaccuracies ?! to allow constructive drill
+  if (mistakesToRetry.length === 0 && playerColor) {
+    mistakesToRetry = moveAnalyses.filter(
+      (m) => m.color === playerColor && m.classification === '?!'
+    );
+  }
 
   return {
     whiteAccuracy,

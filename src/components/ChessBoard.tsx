@@ -14,6 +14,7 @@ interface ChessBoardProps {
   onUserMove: (orig: string, dest: string, promotion?: string) => void;
   customShapes?: DrawShape[];
   theme?: BoardTheme;
+  boardSize?: string;
 }
 
 export const ChessBoard: React.FC<ChessBoardProps> = ({
@@ -24,6 +25,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   onUserMove,
   customShapes = [],
   theme = 'green',
+  boardSize,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<Api | null>(null);
@@ -165,7 +167,11 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
         shapes: customShapes,
       },
     });
-  }, [chess.fen(), orientation, playerColor, isBotThinking, customShapes, getDests, handleMove]);
+
+    requestAnimationFrame(() => {
+      groundRef.current?.redrawAll();
+    });
+  }, [chess, chess.fen(), orientation, playerColor, isBotThinking, customShapes, getDests, handleMove]);
 
   const themeClass = {
     green: 'theme-green',
@@ -178,8 +184,8 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     <div 
       className="flex-shrink-0 aspect-square select-none relative max-w-full"
       style={{
-        width: 'min(480px, 58vh, 100%)',
-        height: 'min(480px, 58vh, 100%)',
+        width: boardSize || 'min(480px, 58vh, 100%)',
+        height: boardSize || 'min(480px, 58vh, 100%)',
       }}
     >
       {/* Chessground Container - dedicated isolated element for Chessground DOM */}
