@@ -51,11 +51,11 @@ jobs:
       - name: ⚡ Build Web Application (Vite + TypeScript)
         run: npm run build
 
-      - name: 🔄 Sync Capacitor Android
-        run: npx cap sync android
-
       - name: 🔧 Grant Execute Permission for Gradle Wrapper
         run: chmod +x android/gradlew
+
+      - name: 🔄 Sync Capacitor Android
+        run: npx cap sync android
 
       - name: 🔨 Compile Android APK (assembleDebug)
         run: |
