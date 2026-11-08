@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "electron .",
-    "electron:build": "npm run build && electron-builder --win",
+    "electron:build": "npm run build && electron-builder --win --publish never",
     "cap:sync": "npm run build && npx cap sync android",
     "cap:open": "npx cap open android",
     "release:patch": "npm version patch && git push origin main --tags",
