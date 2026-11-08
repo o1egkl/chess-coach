@@ -139,6 +139,31 @@ class SoundService {
     osc.start(now);
     osc.stop(now + 0.22);
   }
+
+  public playDefeat() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const notes = [440, 370, 311, 261];
+    notes.forEach((freq, idx) => {
+      const now = this.ctx!.currentTime + idx * 0.12;
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.25);
+    });
+  }
 }
 
 export const sounds = new SoundService();

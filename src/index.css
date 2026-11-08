@@ -55,6 +55,13 @@ cg-board {
   height: 100% !important;
 }
 
+/* Ensure pieces scale smoothly and stay centered inside square tiles */
+.cg-wrap piece {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
+
 /* Mobile touch & native app feel */
 html, body {
   touch-action: manipulation;

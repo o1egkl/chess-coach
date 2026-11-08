@@ -180,18 +180,27 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     graphite: 'theme-graphite',
   }[theme];
 
+  const size = boardSize || 'min(480px, calc(100vw - 44px), 50vh)';
+
   return (
     <div 
-      className="flex-shrink-0 aspect-square select-none relative max-w-full"
+      className="flex-shrink-0 select-none relative max-w-full"
       style={{
-        width: boardSize || 'min(480px, 58vh, 100%)',
-        height: boardSize || 'min(480px, 58vh, 100%)',
+        width: size,
+        height: size,
+        maxWidth: '100%',
+        aspectRatio: '1 / 1',
       }}
     >
       {/* Chessground Container - dedicated isolated element for Chessground DOM */}
       <div 
         ref={containerRef}
-        className={`w-full h-full shadow-2xl rounded-lg overflow-hidden border-3 md:border-4 border-slate-800 relative ${themeClass}`}
+        className={`w-full h-full shadow-2xl rounded-lg overflow-hidden border-2 sm:border-3 md:border-4 border-slate-800 relative ${themeClass}`}
+        style={{
+          width: '100%',
+          height: '100%',
+          aspectRatio: '1 / 1',
+        }}
       />
 
       {/* Promotion Modal Dialog - rendered outside containerRef so React reconciles cleanly */}

@@ -250,7 +250,7 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
                 onUserMove={handleDrillMove}
                 customShapes={customShapes}
                 theme={theme}
-                boardSize="min(380px, 46vh, 100%)"
+                boardSize="min(380px, calc(100vw - 36px), 46vh)"
               />
             </div>
 

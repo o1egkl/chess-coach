@@ -22,7 +22,7 @@ import { MistakeDrill } from './components/MistakeDrill';
 import { PuzzleTrainer } from './components/PuzzleTrainer';
 import { ProfileModal } from './components/ProfileModal';
 import { LanguageModal } from './components/LanguageModal';
-import { BookOpen, Target, BarChart2, Swords, Globe } from 'lucide-react';
+import { BookOpen, Target, BarChart2, Swords, Globe, RotateCcw, Undo2, RefreshCw, Flag } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { language, t, setIsLanguageModalOpen } = useLanguage();
@@ -489,6 +489,35 @@ export const App: React.FC = () => {
     setBoardOrientation((prev) => (prev === 'white' ? 'black' : 'white'));
   };
 
+  // Resign Game
+  const handleResign = () => {
+    if (moveHistory.length === 0 || isBotThinking || gameOver) return;
+    engine.stop();
+    const result = 'loss';
+    const reason = t('reasonResign');
+    sounds.playDefeat();
+    const record = storage.recordCompletedGame({
+      levelId: level.id,
+      botName: getLevelName(level, language),
+      botElo: level.elo,
+      botAvatar: level.avatar,
+      playerColor,
+      result,
+      reason,
+      playerAccuracy: 0,
+      botAccuracy: 0,
+      movesCount: moveHistory.length,
+      openingName: openingInfo?.name,
+      moves: moveHistory,
+    });
+    setProfile(record.updatedProfile);
+    setLastGameResultInfo({
+      eloDelta: record.eloDelta,
+      newElo: record.updatedProfile.elo,
+    });
+    setGameOver({ isOpen: true, result, reason });
+  };
+
   // Player Color Selection
   const handleSelectColor = (color: Color) => {
     if (moveHistory.length > 0 && !chess.isGameOver()) {
@@ -579,14 +608,15 @@ export const App: React.FC = () => {
 
             <button
               onClick={() => setAppMode('puzzles')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition ${
                 appMode === 'puzzles'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Target className="w-3.5 h-3.5" />
-              <span>{t('navPuzzles')}</span>
+              <span className="hidden sm:inline">{t('navPuzzles')}</span>
+              <span className="sm:hidden">{language === 'en' ? 'Puzzles' : 'Задачи'}</span>
             </button>
 
             {moveHistory.length > 0 && (
@@ -716,7 +746,7 @@ export const App: React.FC = () => {
             </div>
 
             {/* Board with Eval Bar Locked Together */}
-            <div className="flex items-center justify-center gap-2 sm:gap-3 w-full h-[min(480px,58vh)] min-h-[300px] max-h-[500px]">
+            <div className="flex items-stretch justify-center gap-1.5 sm:gap-2.5 w-full max-w-[480px] mx-auto">
               {/* Eval Bar strictly matching board height */}
               <EvalBar evaluation={evaluation} orientation={boardOrientation} />
 
@@ -763,6 +793,48 @@ export const App: React.FC = () => {
                 </span>
                 <span className="text-sm">{playerColor === 'white' ? '♔' : '♚'}</span>
               </div>
+            </div>
+
+            {/* Quick In-Game Action Bar directly below the board */}
+            <div className="w-full max-w-[480px] grid grid-cols-4 gap-1.5 sm:gap-2">
+              <button
+                onClick={handleNewGame}
+                disabled={isBotThinking}
+                className="py-1.5 px-2 bg-slate-800 hover:bg-slate-750 active:bg-slate-900 disabled:opacity-40 text-slate-200 hover:text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 border border-slate-700 transition shadow-sm"
+                title={t('newGame')}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="truncate">{t('newGame')}</span>
+              </button>
+
+              <button
+                onClick={handleTakeback}
+                disabled={takebacksRemaining === 0 || moveHistory.length === 0 || isBotThinking}
+                className="py-1.5 px-2 bg-slate-800 hover:bg-slate-750 active:bg-slate-900 disabled:opacity-40 text-slate-200 hover:text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 border border-slate-700 transition shadow-sm"
+                title={t('takeback')}
+              >
+                <Undo2 className="w-3.5 h-3.5 text-amber-400" />
+                <span className="truncate">{t('takeback')}</span>
+              </button>
+
+              <button
+                onClick={handleFlipBoard}
+                className="py-1.5 px-2 bg-slate-800 hover:bg-slate-750 active:bg-slate-900 text-slate-200 hover:text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 border border-slate-700 transition shadow-sm"
+                title={language === 'en' ? 'Flip board' : 'Перевернуть доску'}
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="truncate">{language === 'en' ? 'Flip' : 'Поворот'}</span>
+              </button>
+
+              <button
+                onClick={handleResign}
+                disabled={moveHistory.length === 0 || isBotThinking}
+                className="py-1.5 px-2 bg-slate-800 hover:bg-rose-950/40 active:bg-slate-900 disabled:opacity-40 text-slate-300 hover:text-rose-300 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 border border-slate-700 hover:border-rose-500/40 transition shadow-sm"
+                title={t('resign')}
+              >
+                <Flag className="w-3.5 h-3.5 text-rose-400" />
+                <span className="truncate">{t('resign')}</span>
+              </button>
             </div>
           </section>
 

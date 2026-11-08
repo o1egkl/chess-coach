@@ -195,7 +195,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
         </div>
 
         {/* Board Component */}
-        <div className="flex items-center justify-center w-full h-[min(480px,58vh)] min-h-[300px]">
+        <div className="flex items-center justify-center w-full max-w-[480px]">
           <ChessBoard
             chess={chess}
             orientation={currentPuzzle.playerColor}
