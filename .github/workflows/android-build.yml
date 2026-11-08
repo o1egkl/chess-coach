@@ -51,8 +51,10 @@ jobs:
       - name: ⚡ Build Web Application (Vite + TypeScript)
         run: npm run build
 
-      - name: 🔧 Grant Execute Permission for Gradle Wrapper
-        run: chmod +x android/gradlew
+      - name: 🔧 Fix Line Endings and Permissions for Gradle Wrapper
+        run: |
+          sed -i 's/\r$//' android/gradlew
+          chmod +x android/gradlew
 
       - name: 🔄 Sync Capacitor Android
         run: npx cap sync android
