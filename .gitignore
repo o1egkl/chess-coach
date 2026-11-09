@@ -35,5 +35,8 @@ android/capacitor-cordova-android-plugins/build/
 android/local.properties
 android/.idea/
 android/app/src/main/assets/public
+*.jks
+*.keystore
+*.jks.enc
 
 .vercel

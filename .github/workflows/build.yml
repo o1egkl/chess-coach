@@ -65,12 +65,28 @@ jobs:
       - name: 🔄 Sync Capacitor Android
         run: npx cap sync android --inline || true
 
-      - name: 🔨 Compile Android APK (assembleDebug)
+      - name: 🔑 Restore Android Release Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/chess-coach-release.jks
+            echo "✅ Release Keystore restored successfully."
+          else
+            echo "⚠️ Warning: ANDROID_KEYSTORE_BASE64 secret not found, build might be unsigned."
+          fi
+
+      - name: 🔨 Compile Android AAB (Google Play) & Release APK
+        env:
+          ANDROID_KEYSTORE_PATH: chess-coach-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew bundleRelease assembleRelease assembleDebug --no-daemon --stacktrace
 
-      - name: 📋 Prepare APK Output Artifacts
+      - name: 📋 Prepare Android Output Artifacts (AAB + APK)
         id: prep
         run: |
           VERSION=$(node -p "require('./package.json').version")
@@ -79,23 +95,39 @@ jobs:
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
           
           mkdir -p build-artifacts
-          SOURCE_APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          
+          # 1. Google Play Store Bundle (.aab)
+          SOURCE_AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          if [ -f "$SOURCE_AAB" ]; then
+            cp "$SOURCE_AAB" "build-artifacts/chess-coach-v${VERSION}-${SHORT_SHA}.aab"
+            cp "$SOURCE_AAB" "build-artifacts/chess-coach-latest.aab"
+            echo "✅ Successfully copied Google Play Bundle (.aab):"
+          else
+            echo "❌ Error: AAB bundle not found at $SOURCE_AAB"
+            exit 1
+          fi
+
+          # 2. Release / Debug APK
+          SOURCE_APK="android/app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$SOURCE_APK" ]; then
+            SOURCE_APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          fi
           
           if [ -f "$SOURCE_APK" ]; then
             cp "$SOURCE_APK" "build-artifacts/chess-coach-v${VERSION}-${SHORT_SHA}.apk"
             cp "$SOURCE_APK" "build-artifacts/chess-coach-latest.apk"
-            echo "✅ Successfully generated and copied APK artifacts:"
-            ls -lh build-artifacts/
-          else
-            echo "❌ Error: APK not found at $SOURCE_APK"
-            exit 1
+            echo "✅ Successfully copied APK artifact from $SOURCE_APK"
           fi
+          
+          ls -lh build-artifacts/
 
-      - name: 📤 Upload APK to Workflow Artifacts
+      - name: 📤 Upload Android Artifacts (AAB + APK)
         uses: actions/upload-artifact@v4
         with:
-          name: chess-coach-android-apk
-          path: build-artifacts/*.apk
+          name: chess-coach-android-bundle
+          path: |
+            build-artifacts/*.aab
+            build-artifacts/*.apk
           retention-days: 30
 
   build-windows:
@@ -140,10 +172,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Download Android APK Artifact
+      - name: 📥 Download Android Bundle & APK Artifact
         uses: actions/download-artifact@v4
         with:
-          name: chess-coach-android-apk
+          name: chess-coach-android-bundle
           path: release-assets
 
       - name: 📥 Download Windows EXE Artifact
@@ -159,7 +191,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: 'Chess Coach — Android APK & Windows Desktop (.exe)'
+          name: 'Chess Coach — Android APK, Google Play AAB & Windows Desktop'
           body: |
             ## ♟️ Chess Coach — Официальные сборки приложения
 
@@ -171,10 +203,13 @@ jobs:
 
             ---
 
-            ### 📱 Для Android:
+            ### 📦 Для публикации в Google Play Store:
+            - **[`chess-coach-latest.aab`](https://github.com/${{ github.repository }}/releases/download/latest/chess-coach-latest.aab)** — официальный подписанный релизный бандл **Android App Bundle (.aab)** для Google Play Console.
+
+            ### 📱 Для Android (прямая установка):
             - **[`chess-coach-latest.apk`](https://github.com/${{ github.repository }}/releases/download/latest/chess-coach-latest.apk)** — прямая ссылка на скачивание APK.
 
-            ### 💻 Для Windows:
+            ### 💻 Для Windows Desktop:
             - **[`Chess-Coach-Portable-latest.exe`](https://github.com/${{ github.repository }}/releases/download/latest/Chess-Coach-Portable-latest.exe)** — портативная версия (не требует установки, запустил и играй).
             - **[`Chess-Coach-Setup-latest.exe`](https://github.com/${{ github.repository }}/releases/download/latest/Chess-Coach-Setup-latest.exe)** — стандартный установщик с ярлыком на рабочий стол.
           files: release-assets/*

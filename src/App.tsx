@@ -946,6 +946,16 @@ export const App: React.FC = () => {
                     : 'Check opponent checks and captures before each move.'}
                 </li>
               </ul>
+              <div className="mt-3 pt-2 border-t border-slate-700/40 text-center">
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors underline"
+                >
+                  {language === 'ru' ? 'Политика конфиденциальности' : language === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}
+                </a>
+              </div>
             </div>
           </section>
         </main>
