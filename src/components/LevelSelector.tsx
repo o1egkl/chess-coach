@@ -123,17 +123,17 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{lvl.avatar}</span>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm text-slate-100">
                         {lvl.id}. {botName}
                       </span>
                       {isCurrent && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-slate-950 rounded">
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-slate-950 rounded shrink-0 whitespace-nowrap">
                           {language === 'ru' ? 'В игре' : language === 'tr' ? 'Aktif' : 'Active'}
                         </span>
                       )}
                       {!isUnlocked && (
-                        <span className="px-1.5 py-0.2 text-[9px] font-semibold bg-slate-800 text-slate-400 rounded flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-slate-800 text-slate-400 rounded flex items-center gap-1 shrink-0 whitespace-nowrap">
                           <Lock className="w-2.5 h-2.5" /> {t('locked')}
                         </span>
                       )}

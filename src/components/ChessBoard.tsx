@@ -16,6 +16,7 @@ interface ChessBoardProps {
   theme?: BoardTheme;
   boardSize?: string;
   boardSizePx?: number;
+  resetKey?: number;
 }
 
 export const ChessBoard: React.FC<ChessBoardProps> = ({
@@ -28,6 +29,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   theme = 'green',
   boardSize,
   boardSizePx,
+  resetKey,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -206,7 +208,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
     requestAnimationFrame(() => {
       groundRef.current?.redrawAll();
     });
-  }, [chess, chess.fen(), orientation, playerColor, isBotThinking, customShapes, getDests, handleMove]);
+  }, [chess, chess.fen(), orientation, playerColor, isBotThinking, customShapes, getDests, handleMove, resetKey]);
 
   const themeClass = {
     green: 'theme-green',

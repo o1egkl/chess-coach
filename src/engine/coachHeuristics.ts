@@ -1,4 +1,5 @@
 import { Chess, Square, PieceSymbol, Color as ChessColor } from 'chess.js';
+import { Language } from '../i18n/types';
 
 export interface ThreatAnalysis {
   hangingPieces: Square[]; // Opponent or player undefended attacked squares
@@ -7,33 +8,63 @@ export interface ThreatAnalysis {
   solutionMove?: { from: string; to: string; san: string };
 }
 
-const PIECE_NAMES: Record<PieceSymbol, string> = {
-  p: 'пешка',
-  n: 'конь',
-  b: 'слон',
-  r: 'ладья',
-  q: 'ферзь',
-  k: 'король',
+// Nominative piece names
+const PIECE_NAMES: Record<Language, Record<PieceSymbol, string>> = {
+  ru: {
+    p: 'пешка',
+    n: 'конь',
+    b: 'слон',
+    r: 'ладья',
+    q: 'ферзь',
+    k: 'король',
+  },
+  en: {
+    p: 'pawn',
+    n: 'knight',
+    b: 'bishop',
+    r: 'rook',
+    q: 'queen',
+    k: 'king',
+  },
+  tr: {
+    p: 'piyon',
+    n: 'at',
+    b: 'fil',
+    r: 'kale',
+    q: 'vezir',
+    k: 'şah',
+  },
 };
 
-const PIECE_VALUES: Record<PieceSymbol, number> = {
-  p: 1,
-  n: 3,
-  b: 3,
-  r: 5,
-  q: 9,
-  k: 100,
+// Russian Accusative for "обратить внимание на ..."
+const RU_ACCUSATIVE_PIECES: Record<PieceSymbol, string> = {
+  p: 'пешку',
+  n: 'коня',
+  b: 'слона',
+  r: 'ладью',
+  q: 'ферзя',
+  k: 'короля',
+};
+
+// Russian "Ваш / Ваша"
+const RU_YOUR_PIECE: Record<PieceSymbol, string> = {
+  p: 'Ваша пешка',
+  n: 'Ваш конь',
+  b: 'Ваш слон',
+  r: 'Ваша ладья',
+  q: 'Ваш ферзь',
+  k: 'Ваш король',
 };
 
 export function analyzeThreatsAndHints(
   chess: Chess,
   playerColor: 'white' | 'black',
-  bestMoveUci?: string
+  bestMoveUci?: string,
+  lang: Language = 'ru'
 ): ThreatAnalysis {
   const hangingPieces: Square[] = [];
   const threatenedSquares: Square[] = [];
 
-  const turn = chess.turn(); // 'w' or 'b'
   const opponentColor: ChessColor = playerColor === 'white' ? 'b' : 'w';
   const playerChessColor: ChessColor = playerColor === 'white' ? 'w' : 'b';
 
@@ -73,24 +104,49 @@ export function analyzeThreatsAndHints(
     }
   }
 
-  // Generate Nudge message
-  let nudgeMessage = 'Контролируйте центр и развивайте фигуры в гармонии.';
+  // Generate localized Nudge message
+  let nudgeMessage =
+    lang === 'ru'
+      ? 'Контролируйте центр и гармонично развивайте свои фигуры.'
+      : lang === 'tr'
+      ? 'Merkezi kontrol edin ve taşlarınızı uyum içinde geliştirin.'
+      : 'Control the center and develop your pieces harmoniously.';
 
   if (hangingPieces.length > 0) {
     const targetSq = hangingPieces[0];
     const piece = chess.get(targetSq);
     if (piece) {
+      const sqLabel = targetSq.toUpperCase();
       if (piece.color === playerChessColor) {
-        nudgeMessage = `Осторожно! Ваша ${PIECE_NAMES[piece.type]} на поле ${targetSq} находится под боем без надежной защиты!`;
+        if (lang === 'ru') {
+          nudgeMessage = `Осторожно! ${RU_YOUR_PIECE[piece.type]} на поле ${sqLabel} находится под боем без надёжной защиты!`;
+        } else if (lang === 'tr') {
+          nudgeMessage = `Dikkat! ${sqLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} savunmasız ve tehdit altında!`;
+        } else {
+          nudgeMessage = `Caution! Your ${PIECE_NAMES.en[piece.type]} on ${sqLabel} is undefended and under attack!`;
+        }
       } else {
-        nudgeMessage = `Тактический шанс! Фигура соперника (${PIECE_NAMES[piece.type]} на ${targetSq}) осталась без защиты!`;
+        if (lang === 'ru') {
+          nudgeMessage = `Тактический шанс! Фигура соперника (${PIECE_NAMES.ru[piece.type]} на ${sqLabel}) осталась без защиты!`;
+        } else if (lang === 'tr') {
+          nudgeMessage = `Taktik fırsat! Rakibin ${sqLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} savunmasız kaldı!`;
+        } else {
+          nudgeMessage = `Tactical opportunity! The opponent's ${PIECE_NAMES.en[piece.type]} on ${sqLabel} is left undefended!`;
+        }
       }
     }
   } else if (bestMoveUci && bestMoveUci.length >= 4) {
     const from = bestMoveUci.substring(0, 2) as Square;
     const piece = chess.get(from);
     if (piece) {
-      nudgeMessage = `Тренер рекомендует обратить внимание на ${PIECE_NAMES[piece.type]} на ${from}. Найдите для нее активное продолжение.`;
+      const fromLabel = from.toUpperCase();
+      if (lang === 'ru') {
+        nudgeMessage = `Тренер рекомендует обратить внимание на ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите сильное продолжение для этой фигуры.`;
+      } else if (lang === 'tr') {
+        nudgeMessage = `Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} odaklanmanızı öneriyor. Bu taş için aktif bir devam yolu bulun.`;
+      } else {
+        nudgeMessage = `The coach recommends focusing on the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}. Find an active continuation for this piece.`;
+      }
     }
   }
 

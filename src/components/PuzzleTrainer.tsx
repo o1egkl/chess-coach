@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { DrawShape } from 'chessground/draw';
 import confetti from 'canvas-confetti';
@@ -26,11 +26,27 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   const [userRating, setUserRating] = useState<number>(() => storage.getProfile().tacticsRating);
   const [customShapes, setCustomShapes] = useState<DrawShape[]>([]);
   const [feedback, setFeedback] = useState<string>('');
+  const [resetKey, setResetKey] = useState<number>(0);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentPuzzle: Puzzle = CHESS_PUZZLES[puzzleIndex % CHESS_PUZZLES.length];
 
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
   // Initialize current puzzle
   useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     const c = new Chess(currentPuzzle.fen);
     setChess(c);
     setSolutionStep(0);
@@ -38,6 +54,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
     setFailed(false);
     setCustomShapes([]);
     setFeedback(getPuzzleDescription(currentPuzzle, language));
+    setResetKey((prev) => prev + 1);
   }, [puzzleIndex, language]);
 
   // Handle user's move
@@ -88,7 +105,8 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
         setSolutionStep(nextStep);
         const opponentMoveUci = currentPuzzle.solutionUci[nextStep];
 
-        setTimeout(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
           const oppChess = new Chess(testChess.fen());
           const from = opponentMoveUci.substring(0, 2);
           const to = opponentMoveUci.substring(2, 4);
@@ -107,7 +125,8 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
         }, 400);
       }
     } else {
-      // Wrong move
+      // Wrong move: record and temporarily update chess so the piece moves visually
+      setChess(testChess);
       sounds.playBlunderAlert();
       setFailed(true);
       const res = storage.recordTacticsResult(currentPuzzle.id, currentPuzzle.rating, false);
@@ -120,10 +139,12 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
           ? 'Yanlış hamle (reytingden -10). Tekrar deneyin veya ipucu alın!'
           : 'Incorrect move (-10 to rating). Try again or request a hint!'
       );
-      // Revert after brief moment
-      setTimeout(() => {
+      // Revert after brief moment and bump resetKey to force Chessground redraw
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
         setChess(new Chess(currentPuzzle.fen));
         setSolutionStep(0);
+        setResetKey((prev) => prev + 1);
       }, 700);
     }
   };
@@ -164,12 +185,17 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   };
 
   const handleResetPuzzle = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setChess(new Chess(currentPuzzle.fen));
     setSolutionStep(0);
     setSolved(false);
     setFailed(false);
     setCustomShapes([]);
     setFeedback(getPuzzleDescription(currentPuzzle, language));
+    setResetKey((prev) => prev + 1);
   };
 
   const puzzleTitle = getPuzzleTitle(currentPuzzle, language);
@@ -214,6 +240,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
             onUserMove={handleUserMove}
             customShapes={customShapes}
             theme={theme}
+            resetKey={resetKey}
           />
         </div>
 

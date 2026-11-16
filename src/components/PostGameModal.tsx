@@ -7,7 +7,7 @@ import { RotateCcw, Play, X } from 'lucide-react';
 
 interface PostGameModalProps {
   isOpen: boolean;
-  result: 'win' | 'loss' | 'draw';
+  result: 'win' | 'loss' | 'draw' | 'in_progress';
   reason: string;
   report: GameReport | null;
   isAnalyzing: boolean;
@@ -62,11 +62,21 @@ export const PostGameModal: React.FC<PostGameModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="text-2xl sm:text-3xl">
-              {result === 'win' ? '🏆' : result === 'loss' ? '💔' : '🤝'}
+              {result === 'win' ? '🏆' : result === 'loss' ? '💔' : result === 'draw' ? '🤝' : '⚔️'}
             </span>
             <div>
               <h2 className="text-base sm:text-xl font-black text-white flex items-center gap-2">
-                {result === 'win' ? t('victory') : result === 'loss' ? t('defeat') : t('draw')}
+                {result === 'win'
+                  ? t('victory')
+                  : result === 'loss'
+                  ? t('defeat')
+                  : result === 'draw'
+                  ? t('draw')
+                  : language === 'ru'
+                  ? 'Партия в процессе'
+                  : language === 'tr'
+                  ? 'Oyun Devam Ediyor'
+                  : 'Game in Progress'}
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
                   {reason}
                 </span>

@@ -130,7 +130,7 @@ export const App: React.FC = () => {
       const currentChess = chessRef.current;
 
       if (radar) {
-        const analysis = analyzeThreatsAndHints(currentChess, playerColor, bestMove);
+        const analysis = analyzeThreatsAndHints(currentChess, playerColor, bestMove, language);
         analysis.threatenedSquares.forEach((sq) => {
           shapes.push({ orig: sq as any, brush: 'red' });
         });
@@ -265,7 +265,7 @@ export const App: React.FC = () => {
 
               const isOver = checkGameStatus(nextChess);
               if (!isOver) {
-                const threats = analyzeThreatsAndHints(nextChess, playerColor);
+                const threats = analyzeThreatsAndHints(nextChess, playerColor, undefined, language);
                 setCoachMessage(threats.nudgeMessage);
                 setHintStage(0);
                 setBlunderWarning(null);
@@ -289,6 +289,14 @@ export const App: React.FC = () => {
     }, artificialDelay);
   }, [level, playerColor, threatRadarActive, updateBoardShapes, language]);
 
+  // Helper to normalize centipawns and mate evaluations
+  const normalizeScore = (scoreCp?: number | null, scoreMate?: number | null): number => {
+    if (typeof scoreMate === 'number') {
+      return scoreMate > 0 ? 10000 - scoreMate * 100 : -10000 - scoreMate * 100;
+    }
+    return scoreCp ?? 0;
+  };
+
   // User Move Handler (never uses stale closures)
   const handleUserMove = useCallback((orig: string, dest: string, promotion: string = 'q') => {
     if (isBotThinking) return;
@@ -300,30 +308,6 @@ export const App: React.FC = () => {
       const moveResult = nextChess.move({ from: orig, to: dest, promotion });
 
       if (moveResult) {
-        // Blunder Shield check
-        if (level.hasBlunderShield) {
-          const evalDiff = evaluation?.scoreCp;
-          if (typeof evalDiff === 'number') {
-            const isWhite = playerColor === 'white';
-            const beforeAdvantage = isWhite ? evalDiff : -evalDiff;
-
-            if (beforeAdvantage >= -100) {
-              const testFen = nextChess.fen();
-              engine.evaluatePositionOnly(testFen, 6, (fastEval) => {
-                if (typeof fastEval.scoreCp === 'number') {
-                  const afterAdvantage = isWhite ? fastEval.scoreCp : -fastEval.scoreCp;
-                  const loss = beforeAdvantage - afterAdvantage;
-
-                  if (loss >= 220) {
-                    sounds.playBlunderAlert();
-                    setBlunderWarning(t('blunderAlert'));
-                  }
-                }
-              });
-            }
-          }
-        }
-
         chessRef.current = nextChess;
         setChess(nextChess);
 
@@ -348,18 +332,54 @@ export const App: React.FC = () => {
         }
 
         setHintStage(0);
-        setBlunderWarning(null);
         updateBoardShapes(0, threatRadarActive);
 
         const isOver = checkGameStatus(nextChess);
-        if (!isOver) {
-          triggerBotMove(nextChess);
+        if (isOver) {
+          setBlunderWarning(null);
+          return;
         }
+
+        // Blunder Shield check with atomic evaluation before bot response
+        if (level.hasBlunderShield) {
+          const isWhite = playerColor === 'white';
+          const beforeAdvantage = isWhite
+            ? normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate)
+            : -normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate);
+
+          if (beforeAdvantage >= -150) {
+            setIsBotThinking(true);
+            const testFen = nextChess.fen();
+            engine.evaluatePositionOnly(testFen, 6, (fastEval) => {
+              setIsBotThinking(false);
+              const afterAdvantage = isWhite
+                ? normalizeScore(fastEval.scoreCp, fastEval.scoreMate)
+                : -normalizeScore(fastEval.scoreCp, fastEval.scoreMate);
+              const loss = beforeAdvantage - afterAdvantage;
+
+              if (loss >= 220) {
+                sounds.playBlunderAlert();
+                setBlunderWarning(t('blunderAlert'));
+                // Delay bot response so player notices blunder alert and can take back
+                setTimeout(() => {
+                  triggerBotMove(nextChess);
+                }, 1400);
+              } else {
+                setBlunderWarning(null);
+                triggerBotMove(nextChess);
+              }
+            });
+            return;
+          }
+        }
+
+        setBlunderWarning(null);
+        triggerBotMove(nextChess);
       }
     } catch (err) {
       console.warn('Illegal move attempted:', err);
     }
-  }, [evaluation, isBotThinking, level, moveHistory, playerColor, threatRadarActive, triggerBotMove, updateBoardShapes, t]);
+  }, [evaluation, isBotThinking, level, moveHistory, playerColor, threatRadarActive, triggerBotMove, updateBoardShapes, t, language]);
 
   // Two-Stage Hint Requests
   const handleRequestNudge = () => {
@@ -369,7 +389,7 @@ export const App: React.FC = () => {
     const currentChess = chessRef.current;
     engine.evaluatePositionOnly(currentChess.fen(), 8, (evalData) => {
       setEvaluation(evalData);
-      const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove);
+      const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove, language);
       setCoachMessage(threats.nudgeMessage);
       updateBoardShapes(1, threatRadarActive, evalData.bestMove);
     });
@@ -383,7 +403,7 @@ export const App: React.FC = () => {
     engine.evaluatePositionOnly(currentChess.fen(), 10, (evalData) => {
       setEvaluation(evalData);
       if (evalData.bestMove) {
-        const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove);
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove, language);
         if (threats.solutionMove) {
           setCoachMessage(
             t('recommendedMove', {
@@ -1070,14 +1090,14 @@ export const App: React.FC = () => {
       {/* Post-Game Analysis Modal */}
       <PostGameModal
         isOpen={isPostGameModalOpen}
-        result={gameOver?.result || 'draw'}
+        result={gameOver ? gameOver.result : 'in_progress'}
         reason={
           gameOver?.reason ||
           (language === 'ru'
-            ? 'Партия в процессе или завершена'
+            ? 'Партия ещё продолжается'
             : language === 'tr'
-            ? 'Oyun devam ediyor veya bitti'
-            : 'Game in progress or finished')
+            ? 'Oyun devam ediyor'
+            : 'Game in progress')
         }
         report={gameReport}
         isAnalyzing={isAnalyzingGame}

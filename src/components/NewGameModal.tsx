@@ -1,7 +1,7 @@
 import React from 'react';
 import { ColorChoice } from '../types/chess';
 import { useLanguage } from '../context/LanguageContext';
-import { X, Dices } from 'lucide-react';
+import { X, Dices, Crown } from 'lucide-react';
 
 interface NewGameModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export const NewGameModal: React.FC<NewGameModalProps> = ({
         {/* Modal Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 mb-3 text-2xl">
-            ♟
+            <Crown className="w-6 h-6 text-emerald-400" />
           </div>
           <h2 className="text-xl font-bold text-white tracking-tight">
             {t('newGame')}
@@ -64,7 +64,7 @@ export const NewGameModal: React.FC<NewGameModalProps> = ({
             className="group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 active:bg-slate-700 border border-slate-700 hover:border-emerald-400/80 transition-all duration-150 transform hover:-translate-y-0.5 shadow-lg"
           >
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-3xl text-slate-900 font-bold shadow-md mb-2.5 group-hover:scale-110 transition-transform">
-              ♔
+              <Crown className="w-8 h-8 fill-slate-900 text-slate-900" />
             </div>
             <span className="text-sm font-bold text-white">
               {t('playWhite')}
@@ -96,7 +96,7 @@ export const NewGameModal: React.FC<NewGameModalProps> = ({
             className="group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 active:bg-slate-700 border border-slate-700 hover:border-emerald-400/80 transition-all duration-150 transform hover:-translate-y-0.5 shadow-lg"
           >
             <div className="w-14 h-14 rounded-full bg-slate-950 border border-slate-700 flex items-center justify-center text-3xl text-white font-bold shadow-md mb-2.5 group-hover:scale-110 transition-transform">
-              ♚
+              <Crown className="w-8 h-8 fill-slate-100 text-slate-100" />
             </div>
             <span className="text-sm font-bold text-white">
               {t('playBlack')}

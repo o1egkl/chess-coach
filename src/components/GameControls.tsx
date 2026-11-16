@@ -2,7 +2,7 @@ import React from 'react';
 import { Color, ColorChoice, BoardTheme } from '../types/chess';
 import { Language } from '../i18n/types';
 import { useLanguage } from '../context/LanguageContext';
-import { RotateCcw, Volume2, VolumeX, RefreshCw, Palette, Undo2, Dices } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, RefreshCw, Palette, Undo2, Dices, Crown } from 'lucide-react';
 
 interface GameControlsProps {
   playerColor: Color;
@@ -71,7 +71,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
             }`}
             title={language === 'ru' ? 'Играть белыми (ход первым)' : language === 'tr' ? 'Beyaz ile Oyna (İlk hamle sizde)' : 'Play White (Move first)'}
           >
-            ♔
+            <Crown className="w-4 h-4 fill-slate-900 text-slate-900" />
           </button>
           <button
             onClick={() => onSelectColor('random')}
@@ -89,7 +89,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
             }`}
             title={language === 'ru' ? 'Играть чёрными (бот ходит первым)' : language === 'tr' ? 'Siyah ile Oyna (İlk hamle botta)' : 'Play Black (Bot moves first)'}
           >
-            ♚
+            <Crown className="w-4 h-4 fill-slate-100 text-slate-100" />
           </button>
         </div>
 
