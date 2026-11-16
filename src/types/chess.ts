@@ -1,4 +1,5 @@
 export type Color = 'white' | 'black';
+export type ColorChoice = 'white' | 'black' | 'random';
 
 export type League = 'beginner' | 'club' | 'master';
 

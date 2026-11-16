@@ -76,6 +76,8 @@ export class EngineController {
 
       // Handle probabilistic sub-optimal move selection for beginner levels (1-6)
       if (
+        selectedMove &&
+        selectedMove !== '(none)' &&
         this.currentLevel &&
         this.currentLevel.probSuboptimal &&
         this.currentLevel.probSuboptimal > 0 &&
@@ -94,8 +96,10 @@ export class EngineController {
         }
       }
 
-      if (this.onBestMove && selectedMove && selectedMove !== '(none)') {
-        this.onBestMove(selectedMove, ponder);
+      const cb = this.onBestMove;
+      this.onBestMove = null;
+      if (cb) {
+        cb(selectedMove, ponder);
       }
     }
   }
@@ -151,9 +155,15 @@ export class EngineController {
     }
   }
 
-  public setLevel(level: LevelConfig) {
+  public setLevel(level: LevelConfig, force: boolean = false) {
+    if (!force && this.currentLevel && this.currentLevel.id === level.id && this.currentLevel.elo === level.elo) {
+      return;
+    }
     this.currentLevel = level;
-    this.sendCommand('stop');
+    if (this.isThinking) {
+      this.sendCommand('stop');
+      this.isThinking = false;
+    }
 
     // Reset UCI options
     if (level.uciLimitStrength && level.uciElo) {
@@ -178,6 +188,9 @@ export class EngineController {
     onMove: BestMoveCallback,
     onEvaluation?: EvalCallback
   ) {
+    if (this.isThinking) {
+      this.stop();
+    }
     this.setLevel(level);
     this.onBestMove = onMove;
     this.onEval = onEvaluation || null;

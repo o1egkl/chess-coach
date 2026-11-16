@@ -1,12 +1,12 @@
 import React from 'react';
-import { Color, BoardTheme } from '../types/chess';
+import { Color, ColorChoice, BoardTheme } from '../types/chess';
 import { Language } from '../i18n/types';
 import { useLanguage } from '../context/LanguageContext';
-import { RotateCcw, Volume2, VolumeX, RefreshCw, Palette, Undo2 } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, RefreshCw, Palette, Undo2, Dices } from 'lucide-react';
 
 interface GameControlsProps {
   playerColor: Color;
-  onSelectColor: (color: Color) => void;
+  onSelectColor: (color: ColorChoice) => void;
   onNewGame: () => void;
   onTakeback: () => void;
   canTakeback: boolean;
@@ -58,29 +58,36 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
       {/* Color Selection & Board Flip */}
       <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
-        <div className="flex items-center gap-1 text-xs">
-          <span className="text-slate-400 mr-1">
-            {language === 'ru' ? 'Играть за:' : language === 'tr' ? 'Renk:' : 'Play as:'}
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-slate-400 mr-0.5 font-medium">
+            {language === 'ru' ? 'Сторона:' : language === 'tr' ? 'Taraf:' : 'Side:'}
           </span>
           <button
             onClick={() => onSelectColor('white')}
-            className={`w-7 h-7 rounded-md font-bold text-sm border flex items-center justify-center transition ${
+            className={`w-8 h-8 rounded-lg font-bold text-base border flex items-center justify-center transition shadow-sm ${
               playerColor === 'white'
-                ? 'bg-slate-100 text-slate-900 border-emerald-400 shadow'
-                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                ? 'bg-slate-100 text-slate-900 border-emerald-400 ring-2 ring-emerald-400/40'
+                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
             }`}
-            title={language === 'ru' ? 'Играть белыми' : language === 'tr' ? 'Beyaz ile Oyna' : 'Play White'}
+            title={language === 'ru' ? 'Играть белыми (ход первым)' : language === 'tr' ? 'Beyaz ile Oyna (İlk hamle sizde)' : 'Play White (Move first)'}
           >
             ♔
           </button>
           <button
+            onClick={() => onSelectColor('random')}
+            className="w-8 h-8 rounded-lg font-bold text-xs border flex items-center justify-center transition shadow-sm bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-300 border-slate-700 hover:border-cyan-400/60"
+            title={language === 'ru' ? 'Случайный цвет (50/50)' : language === 'tr' ? 'Rastgele taraf (50/50)' : 'Random side (50/50)'}
+          >
+            <Dices className="w-4 h-4 text-cyan-400" />
+          </button>
+          <button
             onClick={() => onSelectColor('black')}
-            className={`w-7 h-7 rounded-md font-bold text-sm border flex items-center justify-center transition ${
+            className={`w-8 h-8 rounded-lg font-bold text-base border flex items-center justify-center transition shadow-sm ${
               playerColor === 'black'
-                ? 'bg-slate-900 text-slate-100 border-emerald-400 shadow ring-1 ring-emerald-400'
-                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                ? 'bg-slate-950 text-white border-emerald-400 ring-2 ring-emerald-400/40 shadow-emerald-500/10'
+                : 'bg-slate-900 text-slate-400 border-slate-750 hover:text-white hover:bg-slate-800'
             }`}
-            title={language === 'ru' ? 'Играть черными' : language === 'tr' ? 'Siyah ile Oyna' : 'Play Black'}
+            title={language === 'ru' ? 'Играть чёрными (бот ходит первым)' : language === 'tr' ? 'Siyah ile Oyna (İlk hamle botta)' : 'Play Black (Bot moves first)'}
           >
             ♚
           </button>

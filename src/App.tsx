@@ -3,7 +3,7 @@ import { Chess, Square } from 'chess.js';
 import { DrawShape } from 'chessground/draw';
 import { CHESS_LEVELS, getLevelName, getLevelRank, getLevelDescription } from './config/levels';
 import { identifyOpening, OpeningInfo } from './config/openings';
-import { LevelConfig, Color, MoveRecord, BoardTheme, EngineEvaluation, GameReport, PlayerProfile } from './types/chess';
+import { LevelConfig, Color, ColorChoice, MoveRecord, BoardTheme, EngineEvaluation, GameReport, PlayerProfile } from './types/chess';
 import { engine } from './engine/engineController';
 import { sounds } from './engine/soundService';
 import { analyzeThreatsAndHints } from './engine/coachHeuristics';
@@ -22,7 +22,8 @@ import { MistakeDrill } from './components/MistakeDrill';
 import { PuzzleTrainer } from './components/PuzzleTrainer';
 import { ProfileModal } from './components/ProfileModal';
 import { LanguageModal } from './components/LanguageModal';
-import { BookOpen, Target, BarChart2, Swords, Globe, RotateCcw, Undo2, RefreshCw, Flag } from 'lucide-react';
+import { NewGameModal } from './components/NewGameModal';
+import { BookOpen, Target, BarChart2, Swords, Globe, RotateCcw, Undo2, RefreshCw, Flag, Dices } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { language, t, setIsLanguageModalOpen } = useLanguage();
@@ -45,6 +46,7 @@ export const App: React.FC = () => {
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [isPostGameModalOpen, setIsPostGameModalOpen] = useState<boolean>(false);
   const [isMistakeDrillOpen, setIsMistakeDrillOpen] = useState<boolean>(false);
+  const [isNewGameModalOpen, setIsNewGameModalOpen] = useState<boolean>(false);
 
   // Game instance & stable ref
   const [chess, setChess] = useState<Chess>(() => new Chess());
@@ -218,14 +220,26 @@ export const App: React.FC = () => {
         chessSnapshot.fen(),
         level,
         (bestMoveUci) => {
-          if (!bestMoveUci || bestMoveUci === '(none)') {
-            setIsBotThinking(false);
-            return;
+          let uciToPlay = bestMoveUci;
+
+          // Safe fallback for bot: if engine returned empty or (none), pick a legal move
+          if (!uciToPlay || uciToPlay === '(none)') {
+            const currentSnapshot = chessRef.current;
+            const legalMoves = currentSnapshot.moves({ verbose: true });
+            if (legalMoves.length === 0) {
+              setIsBotThinking(false);
+              return;
+            }
+            // In starting position, prefer e2e4 or d2d4
+            const e2e4 = legalMoves.find((m) => m.from === 'e2' && m.to === 'e4');
+            const d2d4 = legalMoves.find((m) => m.from === 'd2' && m.to === 'd4');
+            const fallback = e2e4 || d2d4 || legalMoves[Math.floor(Math.random() * legalMoves.length)];
+            uciToPlay = `${fallback.from}${fallback.to}${fallback.promotion || ''}`;
           }
 
-          const from = bestMoveUci.substring(0, 2);
-          const to = bestMoveUci.substring(2, 4);
-          const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined;
+          const from = uciToPlay.substring(0, 2);
+          const to = uciToPlay.substring(2, 4);
+          const promotion = uciToPlay.length > 4 ? uciToPlay[4] : undefined;
 
           try {
             const currentChess = chessRef.current;
@@ -391,8 +405,18 @@ export const App: React.FC = () => {
     updateBoardShapes(hintStage, next, evaluation?.bestMove);
   };
 
-  // Reset / New Game
-  const handleNewGame = () => {
+  // Start New Game with explicit ColorChoice ('white' | 'black' | 'random')
+  const startNewGameWithColor = (choice: ColorChoice) => {
+    let resolvedColor: Color;
+    if (choice === 'random') {
+      resolvedColor = Math.random() < 0.5 ? 'white' : 'black';
+    } else {
+      resolvedColor = choice;
+    }
+
+    setPlayerColor(resolvedColor);
+    setBoardOrientation(resolvedColor);
+
     engine.stop();
     const freshChess = new Chess();
     chessRef.current = freshChess;
@@ -409,16 +433,38 @@ export const App: React.FC = () => {
     setGameReport(null);
     setIsPostGameModalOpen(false);
     setIsMistakeDrillOpen(false);
-    const botName = getLevelName(level, language);
-    setCoachMessage(
-      language === 'en'
-        ? `New game against bot "${botName}" (${level.elo} Elo). Good luck!`
-        : `Новая партия против бота "${botName}" (${level.elo} Эло). Удачной игры!`
-    );
+    setIsNewGameModalOpen(false);
 
-    if (playerColor === 'black') {
+    const botName = getLevelName(level, language);
+    if (resolvedColor === 'black') {
+      setCoachMessage(
+        language === 'ru'
+          ? `Вы играете чёрными против "${botName}". Бот начинает партию...`
+          : language === 'tr'
+          ? `Siyah taşlarla "${botName}" karşısındasınız. Bot oyunu başlatıyor...`
+          : `Playing as Black vs "${botName}". Bot is making the opening move...`
+      );
+      // Immediately trigger bot move as White
       triggerBotMove(freshChess);
+    } else {
+      setCoachMessage(
+        language === 'ru'
+          ? `Вы играете белыми против "${botName}". Ваш первый ход!`
+          : language === 'tr'
+          ? `Beyaz taşlarla "${botName}" karşısındasınız. İlk hamle sizde!`
+          : `Playing as White vs "${botName}". Make your first move!`
+      );
     }
+  };
+
+  // Quick reset with current color
+  const handleQuickRestart = () => {
+    startNewGameWithColor(playerColor);
+  };
+
+  // Open modal to choose side or start
+  const handleNewGame = () => {
+    setIsNewGameModalOpen(true);
   };
 
   // Trigger Post-Game Analysis
@@ -542,8 +588,8 @@ export const App: React.FC = () => {
     setGameOver({ isOpen: true, result, reason });
   };
 
-  // Player Color Selection
-  const handleSelectColor = (color: Color) => {
+  // Player Color Selection (from Color bar or GameControls)
+  const handleSelectColor = (choice: ColorChoice) => {
     if (moveHistory.length > 0 && !chess.isGameOver()) {
       if (
         !window.confirm(
@@ -557,27 +603,7 @@ export const App: React.FC = () => {
         return;
       }
     }
-    setPlayerColor(color);
-    setBoardOrientation(color);
-
-    engine.stop();
-    const freshChess = new Chess();
-    chessRef.current = freshChess;
-    setChess(freshChess);
-    setMoveHistory([]);
-    setEvaluation(null);
-    setIsBotThinking(false);
-    setGameOver(null);
-    setHintStage(0);
-    setBlunderWarning(null);
-    setCustomShapes([]);
-    setOpeningInfo(null);
-    setTakebacksRemaining(level.takebacksAllowed);
-    setGameReport(null);
-
-    if (color === 'black') {
-      triggerBotMove(freshChess);
-    }
+    startNewGameWithColor(choice);
   };
 
   const handleToggleSound = () => {
@@ -590,7 +616,7 @@ export const App: React.FC = () => {
     if (level.id < 15) {
       const nextLvl = CHESS_LEVELS[level.id];
       handleSelectLevel(nextLvl);
-      handleNewGame();
+      handleQuickRestart();
     }
   };
 
@@ -891,6 +917,55 @@ export const App: React.FC = () => {
                 <span className="truncate">{t('resign')}</span>
               </button>
             </div>
+
+            {/* Direct Color Selector Bar: Always visible on mobile and desktop right under the board */}
+            <div 
+              className="flex items-center justify-between bg-slate-800/80 backdrop-blur border border-slate-700/80 rounded-xl px-2.5 py-1.5 mx-auto text-xs shadow-sm"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
+              <div className="flex items-center gap-1.5 text-slate-300 font-semibold text-[11px]">
+                <span>{language === 'ru' ? 'Сторона:' : language === 'tr' ? 'Taraf:' : 'Side:'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleSelectColor('white')}
+                  disabled={isBotThinking}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    playerColor === 'white'
+                      ? 'bg-slate-100 text-slate-900 ring-2 ring-emerald-400 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                  }`}
+                  title={t('playWhiteDesc')}
+                >
+                  <span className="text-sm">♔</span>
+                  <span>{t('playWhite')}</span>
+                </button>
+
+                <button
+                  onClick={() => handleSelectColor('random')}
+                  disabled={isBotThinking}
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition bg-slate-800 text-slate-300 hover:text-cyan-300 hover:bg-slate-700 border border-slate-700 shadow-sm"
+                  title={t('playRandomDesc')}
+                >
+                  <Dices className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{t('playRandom')}</span>
+                </button>
+
+                <button
+                  onClick={() => handleSelectColor('black')}
+                  disabled={isBotThinking}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    playerColor === 'black'
+                      ? 'bg-slate-950 text-white ring-2 ring-emerald-400 border border-slate-700 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                  }`}
+                  title={t('playBlackDesc')}
+                >
+                  <span className="text-sm">♚</span>
+                  <span>{t('playBlack')}</span>
+                </button>
+              </div>
+            </div>
           </section>
 
           {/* Right Column: Game Controls & PGN History */}
@@ -972,12 +1047,25 @@ export const App: React.FC = () => {
           eloDelta={lastGameResultInfo?.eloDelta}
           newElo={lastGameResultInfo?.newElo}
           unlockedLevelName={lastGameResultInfo?.unlockedLevelName}
-          onRematch={handleNewGame}
+          onRematch={handleQuickRestart}
+          onChangeColor={() => {
+            setGameOver(null);
+            setIsNewGameModalOpen(true);
+          }}
           onNextLevel={handleNextLevel}
           onAnalyze={handleTriggerAnalysis}
           onClose={() => setGameOver(null)}
         />
       )}
+
+      {/* New Game / Side Chooser Modal */}
+      <NewGameModal
+        isOpen={isNewGameModalOpen}
+        onClose={() => setIsNewGameModalOpen(false)}
+        onSelectColor={startNewGameWithColor}
+        botName={botName}
+        botElo={level.elo}
+      />
 
       {/* Post-Game Analysis Modal */}
       <PostGameModal
@@ -998,8 +1086,11 @@ export const App: React.FC = () => {
         level={level}
         theme={theme}
         onRetryMistakes={handleOpenMistakeDrill}
-        onRematch={handleNewGame}
-        onNewGame={handleNewGame}
+        onRematch={handleQuickRestart}
+        onNewGame={() => {
+          setIsPostGameModalOpen(false);
+          setIsNewGameModalOpen(true);
+        }}
         onClose={() => setIsPostGameModalOpen(false)}
       />
 

@@ -16,6 +16,7 @@ interface GameOverModalProps {
   newElo?: number;
   unlockedLevelName?: string;
   onRematch: () => void;
+  onChangeColor?: () => void;
   onNextLevel?: () => void;
   onAnalyze?: () => void;
   onClose: () => void;
@@ -31,6 +32,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   newElo,
   unlockedLevelName,
   onRematch,
+  onChangeColor,
   onNextLevel,
   onAnalyze,
   onClose,
@@ -144,31 +146,42 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         )}
 
         {/* Actions */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button
-            onClick={onRematch}
-            className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>{t('rematch')}</span>
-          </button>
-
-          {result === 'win' && onNextLevel && level.id < 15 ? (
+        <div className="space-y-2 pt-1">
+          {result === 'win' && onNextLevel && level.id < 15 && (
             <button
               onClick={onNextLevel}
-              className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow"
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow"
             >
               <span>{t('nextLevel')}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-          ) : (
-            <button
-              onClick={onClose}
-              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition shadow"
-            >
-              {t('close')}
-            </button>
           )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onRematch}
+              className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>{t('rematch')}</span>
+            </button>
+
+            {onChangeColor ? (
+              <button
+                onClick={onChangeColor}
+                className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow"
+              >
+                <span>{language === 'ru' ? 'Выбрать цвет' : language === 'tr' ? 'Renk Seç' : 'Choose Side'}</span>
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition shadow"
+              >
+                {t('close')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
