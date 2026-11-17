@@ -1,0 +1,8 @@
+{
+  "name": "Chess Coach",
+  "slug": "chesscoach",
+  "version": "0.1.0",
+  "description": "Interactive Chess Coach for all skill levels, from beginner to master.",
+  "category": "education",
+  "homepage_url": "https://github.com/o1egkl/chess-coach"
+}

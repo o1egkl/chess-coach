@@ -27,7 +27,8 @@ export class EngineController {
   private initWorker() {
     try {
       // Stockfish JS/WASM worker from public/stockfish/stockfish.js
-      this.worker = new Worker('/stockfish/stockfish.js');
+      const workerUrl = new URL('./stockfish/stockfish.js', window.location.href).href;
+      this.worker = new Worker(workerUrl);
       this.worker.onmessage = this.handleWorkerMessage.bind(this);
       this.worker.onerror = (err) => {
         console.error('Stockfish Worker Error:', err);

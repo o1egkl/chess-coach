@@ -129,7 +129,8 @@ export async function analyzeGame(
   }
 
   // Spin up dedicated worker for fast batch evaluation
-  const worker = new Worker('/stockfish/stockfish.js');
+  const workerUrl = new URL('./stockfish/stockfish.js', window.location.href).href;
+  const worker = new Worker(workerUrl);
   worker.postMessage('uci');
   worker.postMessage('setoption name MultiPV value 1');
   worker.postMessage('isready');

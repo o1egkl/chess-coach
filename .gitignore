@@ -40,3 +40,5 @@ android/app/src/main/assets/public
 *.jks.enc
 
 .vercel
+.anna/
+bundle/

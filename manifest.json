@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "required_executas": [],
+  "ui": {
+    "bundle": {
+      "format": "static-spa",
+      "entry": "index.html",
+      "external_origins": []
+    },
+    "browser_permissions": [
+      "fullscreen"
+    ],
+    "views": [
+      {
+        "name": "main",
+        "title": "Chess Coach",
+        "default": true
+      }
+    ]
+  }
+}
