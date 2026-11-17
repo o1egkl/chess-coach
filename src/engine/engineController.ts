@@ -64,8 +64,10 @@ export class EngineController {
     if (line.startsWith('bestmove')) {
       this.isThinking = false;
       this.latestEvaluation.isThinking = false;
-      if (this.onEval) {
-        this.onEval({ ...this.latestEvaluation });
+      const evalCb = this.onEval;
+      if (evalCb) {
+        this.onEval = null;
+        evalCb({ ...this.latestEvaluation });
       }
 
       const parts = line.split(' ');
@@ -203,6 +205,9 @@ export class EngineController {
   }
 
   public evaluatePositionOnly(fen: string, depth: number = 10, onEvaluation: EvalCallback) {
+    if (this.isThinking) {
+      this.stop();
+    }
     this.onBestMove = null;
     this.onEval = onEvaluation;
     this.isThinking = true;

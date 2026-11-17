@@ -112,7 +112,31 @@ export function analyzeThreatsAndHints(
       ? 'Merkezi kontrol edin ve taşlarınızı uyum içinde geliştirin.'
       : 'Control the center and develop your pieces harmoniously.';
 
-  if (hangingPieces.length > 0) {
+  if (bestMoveUci && bestMoveUci.length >= 4) {
+    const from = bestMoveUci.substring(0, 2) as Square;
+    const piece = chess.get(from);
+    if (piece) {
+      const fromLabel = from.toUpperCase();
+      const isUnderAttack = threatenedSquares.includes(from);
+      if (isUnderAttack) {
+        if (lang === 'ru') {
+          nudgeMessage = `Осторожно, фигура под боем! Тренер рекомендует ход: ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите для неё сильное поле.`;
+        } else if (lang === 'tr') {
+          nudgeMessage = `Dikkat, taş tehdit altında! Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} oynamanızı öneriyor.`;
+        } else {
+          nudgeMessage = `Caution, piece under attack! The coach recommends moving the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}.`;
+        }
+      } else {
+        if (lang === 'ru') {
+          nudgeMessage = `Тренер рекомендует обратить внимание на ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите сильное продолжение для этой фигуры.`;
+        } else if (lang === 'tr') {
+          nudgeMessage = `Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} odaklanmanızı öneriyor. Bu taş için aktif bir devam yolu bulun.`;
+        } else {
+          nudgeMessage = `The coach recommends focusing on the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}. Find an active continuation for this piece.`;
+        }
+      }
+    }
+  } else if (hangingPieces.length > 0) {
     const targetSq = hangingPieces[0];
     const piece = chess.get(targetSq);
     if (piece) {
@@ -133,19 +157,6 @@ export function analyzeThreatsAndHints(
         } else {
           nudgeMessage = `Tactical opportunity! The opponent's ${PIECE_NAMES.en[piece.type]} on ${sqLabel} is left undefended!`;
         }
-      }
-    }
-  } else if (bestMoveUci && bestMoveUci.length >= 4) {
-    const from = bestMoveUci.substring(0, 2) as Square;
-    const piece = chess.get(from);
-    if (piece) {
-      const fromLabel = from.toUpperCase();
-      if (lang === 'ru') {
-        nudgeMessage = `Тренер рекомендует обратить внимание на ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите сильное продолжение для этой фигуры.`;
-      } else if (lang === 'tr') {
-        nudgeMessage = `Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} odaklanmanızı öneriyor. Bu taş için aktif bir devam yolu bulun.`;
-      } else {
-        nudgeMessage = `The coach recommends focusing on the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}. Find an active continuation for this piece.`;
       }
     }
   }

@@ -98,6 +98,18 @@ export const App: React.FC = () => {
   const [takebacksRemaining, setTakebacksRemaining] = useState<number>(CHESS_LEVELS[0].takebacksAllowed);
   const [threatRadarActive, setThreatRadarActive] = useState<boolean>(false);
   const [hintStage, setHintStage] = useState<0 | 1 | 2>(0);
+  const hintStageRef = useRef<0 | 1 | 2>(0);
+  const [cachedHintMove, setCachedHintMove] = useState<string | null>(null);
+  const cachedHintMoveRef = useRef<string | null>(null);
+
+  const updateHintStage = useCallback((stage: 0 | 1 | 2) => {
+    hintStageRef.current = stage;
+    setHintStage(stage);
+    if (stage === 0) {
+      cachedHintMoveRef.current = null;
+      setCachedHintMove(null);
+    }
+  }, []);
   const [coachMessage, setCoachMessage] = useState<string>(() => t('coachWelcome'));
   const [blunderWarning, setBlunderWarning] = useState<string | null>(null);
   const [customShapes, setCustomShapes] = useState<DrawShape[]>([]);
@@ -273,12 +285,16 @@ export const App: React.FC = () => {
               if (!isOver) {
                 const threats = analyzeThreatsAndHints(nextChess, playerColor, undefined, language);
                 setCoachMessage(threats.nudgeMessage);
-                setHintStage(0);
+                updateHintStage(0);
                 setBlunderWarning(null);
                 updateBoardShapes(0, threatRadarActive);
 
                 engine.evaluatePositionOnly(nextChess.fen(), 10, (evalData) => {
                   setEvaluation(evalData);
+                  if (evalData.bestMove) {
+                    setCachedHintMove(evalData.bestMove);
+                    cachedHintMoveRef.current = evalData.bestMove;
+                  }
                 });
               }
             }
@@ -337,7 +353,7 @@ export const App: React.FC = () => {
           setOpeningInfo(detectedOpening);
         }
 
-        setHintStage(0);
+        updateHintStage(0);
         updateBoardShapes(0, threatRadarActive);
 
         const isOver = checkGameStatus(nextChess);
@@ -387,29 +403,34 @@ export const App: React.FC = () => {
     }
   }, [evaluation, isBotThinking, level, moveHistory, playerColor, threatRadarActive, triggerBotMove, updateBoardShapes, t, language]);
 
-  // Two-Stage Hint Requests
+  // Two-Stage Hint Requests with Unified Move Caching
   const handleRequestNudge = () => {
     if (hintStage >= 1 || isBotThinking) return;
-    setHintStage(1);
+    updateHintStage(1);
 
     const currentChess = chessRef.current;
-    engine.evaluatePositionOnly(currentChess.fen(), 8, (evalData) => {
-      setEvaluation(evalData);
-      const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove, language);
+
+    // If move is already cached, apply nudge instantly
+    if (cachedHintMoveRef.current) {
+      const move = cachedHintMoveRef.current;
+      const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
       setCoachMessage(threats.nudgeMessage);
-      updateBoardShapes(1, threatRadarActive, evalData.bestMove);
-    });
-  };
+      updateBoardShapes(1, threatRadarActive, move);
+      return;
+    }
 
-  const handleRequestSolution = () => {
-    if (isBotThinking) return;
-    setHintStage(2);
-
-    const currentChess = chessRef.current;
+    // Evaluate once at consistent depth (depth 10)
     engine.evaluatePositionOnly(currentChess.fen(), 10, (evalData) => {
       setEvaluation(evalData);
-      if (evalData.bestMove) {
-        const threats = analyzeThreatsAndHints(currentChess, playerColor, evalData.bestMove, language);
+      const move = evalData.bestMove;
+      if (move) {
+        setCachedHintMove(move);
+        cachedHintMoveRef.current = move;
+      }
+
+      // If user progressed to stage 2 while engine was calculating, reveal solution
+      if (hintStageRef.current === 2 && move) {
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
         if (threats.solutionMove) {
           setCoachMessage(
             t('recommendedMove', {
@@ -419,7 +440,48 @@ export const App: React.FC = () => {
             })
           );
         }
-        updateBoardShapes(2, threatRadarActive, evalData.bestMove);
+        updateBoardShapes(2, threatRadarActive, move);
+      } else if (move) {
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
+        setCoachMessage(threats.nudgeMessage);
+        updateBoardShapes(1, threatRadarActive, move);
+      }
+    });
+  };
+
+  const handleRequestSolution = () => {
+    if (hintStage === 2 || isBotThinking) return;
+    updateHintStage(2);
+
+    const currentChess = chessRef.current;
+
+    const applySolution = (bestMove: string) => {
+      const threats = analyzeThreatsAndHints(currentChess, playerColor, bestMove, language);
+      if (threats.solutionMove) {
+        setCoachMessage(
+          t('recommendedMove', {
+            move: threats.solutionMove.san,
+            from: threats.solutionMove.from,
+            to: threats.solutionMove.to,
+          })
+        );
+      }
+      updateBoardShapes(2, threatRadarActive, bestMove);
+    };
+
+    // If already cached from Nudge (or previous calculation), use the EXACT SAME MOVE instantly!
+    if (cachedHintMoveRef.current) {
+      applySolution(cachedHintMoveRef.current);
+      return;
+    }
+
+    // Otherwise (user clicked Solution directly), evaluate at depth 10, cache, and apply
+    engine.evaluatePositionOnly(currentChess.fen(), 10, (evalData) => {
+      setEvaluation(evalData);
+      if (evalData.bestMove) {
+        setCachedHintMove(evalData.bestMove);
+        cachedHintMoveRef.current = evalData.bestMove;
+        applySolution(evalData.bestMove);
       }
     });
   };
@@ -428,7 +490,7 @@ export const App: React.FC = () => {
   const handleToggleThreatRadar = () => {
     const next = !threatRadarActive;
     setThreatRadarActive(next);
-    updateBoardShapes(hintStage, next, evaluation?.bestMove);
+    updateBoardShapes(hintStage, next, cachedHintMoveRef.current || evaluation?.bestMove);
   };
 
   // Start New Game with explicit ColorChoice ('white' | 'black' | 'random')
@@ -451,7 +513,7 @@ export const App: React.FC = () => {
     setEvaluation(null);
     setIsBotThinking(false);
     setGameOver(null);
-    setHintStage(0);
+    updateHintStage(0);
     setBlunderWarning(null);
     setCustomShapes([]);
     setOpeningInfo(null);
@@ -536,6 +598,7 @@ export const App: React.FC = () => {
   const handleSelectLevel = (newLevel: LevelConfig) => {
     setLevel(newLevel);
     setTakebacksRemaining(newLevel.takebacksAllowed);
+    updateHintStage(0);
     engine.setLevel(newLevel);
     const botName = getLevelName(newLevel, language);
     const botDesc = getLevelDescription(newLevel, language);
@@ -564,7 +627,7 @@ export const App: React.FC = () => {
     chessRef.current = freshChess;
     setChess(freshChess);
     setMoveHistory(newHistory);
-    setHintStage(0);
+    updateHintStage(0);
     setBlunderWarning(null);
     setCustomShapes([]);
     setGameOver(null);
