@@ -58,18 +58,24 @@ export const App: React.FC = () => {
     if (typeof window === 'undefined') return 360;
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const availableWidth = w < 768 ? Math.max(260, w - 44) : 480;
-    const availableHeight = Math.max(260, h * 0.52);
-    return Math.floor(Math.min(availableWidth, availableHeight, 480));
+    if (w < 1024) {
+      const verticalBudget = Math.max(220, h - 290);
+      const horizontalBudget = Math.max(220, w - 36);
+      return Math.floor(Math.min(verticalBudget, horizontalBudget, 360));
+    }
+    return 480;
   });
 
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const availableWidth = w < 768 ? Math.max(260, w - 44) : 480;
-      const availableHeight = Math.max(260, h * 0.52);
-      const newSize = Math.floor(Math.min(availableWidth, availableHeight, 480));
+      let newSize = 480;
+      if (w < 1024) {
+        const verticalBudget = Math.max(220, h - 290);
+        const horizontalBudget = Math.max(220, w - 36);
+        newSize = Math.floor(Math.min(verticalBudget, horizontalBudget, 360));
+      }
       setBoardSize((prev) => (Math.abs(prev - newSize) > 2 ? newSize : prev));
     };
 
@@ -771,23 +777,26 @@ export const App: React.FC = () => {
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-[250px_1fr_270px] xl:grid-cols-[270px_1fr_290px] gap-3 md:gap-4 items-start">
           {/* Left Column: Coach & Level Roadmap */}
-          <section className="space-y-3 order-2 lg:order-1 min-w-0">
-            <CoachCard
-              level={level}
-              gamePhase={getGamePhase()}
-              openingInfo={openingInfo}
-              coachMessage={coachMessage}
-              blunderWarning={blunderWarning}
-              hintStage={hintStage}
-              onRequestNudge={handleRequestNudge}
-              onRequestSolution={handleRequestSolution}
-              threatRadarActive={threatRadarActive}
-              onToggleThreatRadar={handleToggleThreatRadar}
-              isBotThinking={isBotThinking}
-              isPlayerTurn={isPlayerTurn}
-              takebacksRemaining={takebacksRemaining}
-              onTakeback={handleTakeback}
-            />
+          <section className="flex flex-col gap-3 order-2 lg:order-1 min-w-0">
+            {/* Desktop-only Coach Card (on mobile, rendered directly below player card in center column) */}
+            <div className="hidden lg:block">
+              <CoachCard
+                level={level}
+                gamePhase={getGamePhase()}
+                openingInfo={openingInfo}
+                coachMessage={coachMessage}
+                blunderWarning={blunderWarning}
+                hintStage={hintStage}
+                onRequestNudge={handleRequestNudge}
+                onRequestSolution={handleRequestSolution}
+                threatRadarActive={threatRadarActive}
+                onToggleThreatRadar={handleToggleThreatRadar}
+                isBotThinking={isBotThinking}
+                isPlayerTurn={isPlayerTurn}
+                takebacksRemaining={takebacksRemaining}
+                onTakeback={handleTakeback}
+              />
+            </div>
 
             <LevelSelector
               currentLevel={level}
@@ -798,7 +807,7 @@ export const App: React.FC = () => {
           </section>
 
           {/* Center Column: Chessboard & Opponent/Player Cards */}
-          <section className="flex flex-col items-center justify-center space-y-2 order-1 lg:order-2 w-full min-w-0">
+          <section className="flex flex-col items-center justify-center gap-2 order-1 lg:order-2 w-full min-w-0">
             {/* Opponent Card (Top) */}
             <div 
               className="bg-slate-850 border border-slate-750 px-3 py-1.5 rounded-lg flex items-center justify-between text-xs shadow-sm mx-auto"
@@ -891,6 +900,30 @@ export const App: React.FC = () => {
                 </span>
                 <span className="text-sm">{playerColor === 'white' ? '♔' : '♚'}</span>
               </div>
+            </div>
+
+            {/* Mobile Coach Card: 100% visible on mobile without scrolling */}
+            <div 
+              className="lg:hidden mx-auto w-full"
+              style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
+            >
+              <CoachCard
+                level={level}
+                gamePhase={getGamePhase()}
+                openingInfo={openingInfo}
+                coachMessage={coachMessage}
+                blunderWarning={blunderWarning}
+                hintStage={hintStage}
+                onRequestNudge={handleRequestNudge}
+                onRequestSolution={handleRequestSolution}
+                threatRadarActive={threatRadarActive}
+                onToggleThreatRadar={handleToggleThreatRadar}
+                isBotThinking={isBotThinking}
+                isPlayerTurn={isPlayerTurn}
+                takebacksRemaining={takebacksRemaining}
+                onTakeback={handleTakeback}
+                compact={true}
+              />
             </div>
 
             {/* Quick In-Game Action Bar directly below the board */}
