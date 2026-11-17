@@ -1,164 +1,161 @@
-# Chess Coach — Обучающая шахматная игра (400–2420+ Elo)
+# Chess Coach — Educational Chess Platform (400–2420+ Elo)
 
-🌍 **Language / Язык / Dil**: [English](README.en.md) | [Русский](README.md) | [Türkçe](README.tr.md)
+🌍 **Language / Язык / Dil**: [English](README.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md)
 
-Кроссплатформенная шахматная платформа (**Web, Windows Desktop и Android**), созданная на **React 18, TypeScript, Tailwind CSS, Chessground и Stockfish 16 WASM**.
-
----
-
-## 🌟 Основные возможности
-
-### 1. 15 Уровней сложности (400 — 2420+ Elo)
-* **Новички (Уровни 1–5, 400–1000 Elo)**: Адаптивный ИИ на базе `MultiPV 3–5` с вероятностным выбором субоптимальных ходов и тактическими зевками.
-* **Любители (Уровни 6–10, 1150–1750 Elo)**: Ограничение силы через параметры Stockfish `UCI_LimitStrength` и `UCI_Elo`.
-* **Мастера (Уровни 11–15, 1900–2420+ Elo)**: Полноценный расчет Stockfish на глубину до 20+ полуходов с мгновенным позиционным наказом за ошибки.
-
-### 2. Интерактивный тренер (Coach)
-* **Двухступенчатые подсказки**:
-  1. *Намёк (Nudge)*: выделяет фигуру и область доски.
-  2. *Решение (Solution)*: показывает точную зелёную стрелку лучшего хода по оценке движка.
-* **Радар угроз (Threat Radar / Heatmap)**: визуальная подсветка атакованных полей и незащищенных фигур.
-* **Защита от грубых ошибок (Blunder Shield)**: превентивная проверка движком, звуковой сигнал тревоги и задержка ответа бота, дающая время отменить ход.
-* **Детектор дебютов**: автоматическое распознавание дебютов по классификации ECO.
-
-### 3. Пост-игровой анализ и исправление ошибок
-* Полный ретроспективный разбор каждого хода партии (Centipawn Loss $\Delta$ cp).
-* Градация ходов: Блестящий (`!!`), Лучший (`!`), Теория (`book`), Неточность (`?!`), Ошибка (`?`), Зевок (`??`).
-* Расчёт точности игры (Accuracy 0–100%).
-* Интерактивный график перевеса (Advantage Curve) с возможностью перехода к любому ходу.
-* Режим **«Исправь свои ошибки» (Mistake Drill)**: интерактивная тренировка повторного решения позиций, где были допущены ошибки.
-
-### 4. Тренажер тактики (Tactical Puzzles)
-* Подборка проверенных тактических задач:
-  * **Вилка конём** (Knight Fork)
-  * **Мат по последней горизонтали** (Back-Rank Mate)
-  * **Абсолютная связка** (Absolute Pin)
-  * **Спёртый мат** (Smothered Mate)
-  * **Отвлечение защитника** (Deflection Mate)
-  * **Вскрытый шах** (Discovered Check)
-  * **Сквозной удар** (Skewer Attack)
-  * **Мат Легаля** (Legall's Mate)
-* Все задачи на 100% валидированы движком `chess.js` на легальность ходов.
-* Стрик побед, персональный тактический рейтинг и звуковое сопровождение.
-
-### 5. Полная мультиязычность (i18n)
-* Полный перевод интерфейса, профилей ботов, тактических тем и эвристик тренера на **Русский**, **Английский** и **Турецкий** языки.
-
-### 6. Профиль игрока и сохранение прогресса
-* Подсчет динамического рейтинга Elo по правилам ФИДЕ.
-* Прогресс разблокировки 15 ботов.
-* График динамики изменения рейтинга.
-* Хранение истории партий и статистики в LocalStorage.
+Cross-platform educational chess application (**Web, Windows Desktop & Android**) built with **React 18, TypeScript, Tailwind CSS, Chessground, and Stockfish 16 WASM**.
 
 ---
 
-## 🚀 Платформы и загрузка
+## 🌟 Key Features
 
-* **Web-версия**: Развернута на [Vercel Production](https://chess-coach-ochre-tau.vercel.app).
-* **Android APK / AAB**: Нативное приложение на базе **Capacitor 8** со встроенным **Stockfish 16 WASM (100% офлайн без интернета)**.
-* **Windows Desktop (.exe)**: Десктопное приложение на базе **Electron** с установщиком NSIS и портативным исполняемым файлом.
-* **Автоматическая сборка в GitHub Actions**:
-  - При каждом пуше в ветку `main` запускается workflow `.github/workflows/android-build.yml`.
-  - Автоматически собираются установочные файлы: Android APK (`chess-coach-latest.apk`) и Windows-инсталлятор (`Chess Coach Setup.exe`).
-  - Релизы всегда доступны в разделе [GitHub Releases](https://github.com/o1egkl/chess-coach/releases).
+### 1. 15 Adaptive Difficulty Levels (400 — 2420+ Elo)
+* **Beginners (Levels 1–5, 400–1000 Elo)**: Probabilistic suboptimal move selection with `MultiPV 3–5`, simulated blunders, and educational guidance.
+* **Club Players (Levels 6–10, 1150–1750 Elo)**: Balanced play via Stockfish parameters `UCI_LimitStrength` and calibrated `UCI_Elo`.
+* **Masters (Levels 11–15, 1900–2420+ Elo)**: Full Stockfish calculation depth (20+ ply) with tactical sharpness and positional punishment.
+
+### 2. Interactive Coach System
+* **Two-Stage Progressive Hints**:
+  1. *Nudge*: Highlights the relevant piece and general tactical area.
+  2. *Solution*: Draws an exact green arrow indicating the engine's best move.
+* **Threat Radar (Heatmap)**: Live visual highlighting of attacked squares, threatened pieces, and undefended friendly/opponent material.
+* **Blunder Shield**: Atomic evaluation safeguard that intercepts fatal mistakes, plays an alert sound, displays a warning banner, and delays the bot's response to give the player time to take back.
+* **ECO Opening Classifier**: Real-time identification of opening variations with educational descriptions.
+
+### 3. Post-Game Analysis & Mistake Drill
+* Full retrospective move-by-move engine analysis with Centipawn Loss ($\Delta$ cp).
+* Move quality classification: Brilliant (`!!`), Best (`!`), Book (`book`), Inaccuracy (`?!`), Mistake (`?`), Blunder (`??`).
+* Player vs. bot accuracy scoring (0–100%).
+* Interactive advantage curve with one-click navigation to any ply.
+* **Mistake Drill**: Interactive retry mode allowing players to replay positions where blunders or mistakes occurred.
+
+### 4. Tactical Puzzle Trainer
+* Curated tactical puzzle collection (Knight Fork, Back-Rank Mate, Absolute Pin, Smothered Mate, Deflection, Discovered Check, Skewer, Legall's Mate).
+* All puzzles are 100% verified with `chess.js` for legal moves and accurate tactical themes.
+* Winning streak counter, tactics rating progression, and confetti/sound celebrations.
+
+### 5. Multilingual Support
+* Complete UI, bot profiles, tactical descriptions, and coach heuristics translated into **English**, **Russian**, and **Turkish**.
+
+### 6. Player Profile & Local Progress
+* Dynamic FIDE-style Elo calculation.
+* 15-bot unlock progression and win tracking.
+* Elo rating history chart.
+* Persistent offline storage via `LocalStorage`.
 
 ---
 
-## 📱 Инструкция по установке
+## 🚀 Platforms & Downloads
+
+* **Web Version**: Deployed live on [Vercel Production](https://chess-coach-ochre-tau.vercel.app).
+* **Android APK / AAB**: Native mobile application powered by **Capacitor 8** with embedded **Stockfish 16 WASM (100% offline, zero network required)**.
+* **Windows Desktop (.exe)**: Packaged via **Electron** with NSIS installer and portable executable.
+* **Automated CI/CD**:
+  - Every push to the `main` branch automatically triggers GitHub Actions (`.github/workflows/android-build.yml`).
+  - Automatically compiles both the Android APK (`chess-coach-latest.apk`) and Windows binary (`Chess Coach Setup.exe`).
+  - Pre-built artifacts and releases are always available on the [Releases](https://github.com/o1egkl/chess-coach/releases) page.
+
+---
+
+## 📱 Installation Guide
 
 ### Android
-1. Перейдите в раздел [GitHub Releases](https://github.com/o1egkl/chess-coach/releases).
-2. В блоке **Assets** скачайте файл **`chess-coach-latest.apk`**.
-3. Запустите файл на вашем Android-устройстве и подтвердите установку.
-4. Играйте офлайн с полным функционалом тренера и 15 уровнями сложности!
+1. Go to the [GitHub Releases](https://github.com/o1egkl/chess-coach/releases) page.
+2. Under **Assets**, download **`chess-coach-latest.apk`**.
+3. Open the APK file on your Android device and confirm installation.
+4. Enjoy 100% offline chess with full engine coaching!
 
 ### Windows Desktop
-1. Скачайте **`Chess Coach Setup.exe`** из раздела [GitHub Releases](https://github.com/o1egkl/chess-coach/releases).
-2. Запустите установщик или используйте портативную сборку.
-3. Запускайте Chess Coach прямо с рабочего стола.
+1. Download **`Chess Coach Setup.exe`** from [GitHub Releases](https://github.com/o1egkl/chess-coach/releases).
+2. Run the installer or use the portable executable.
+3. Launch Chess Coach directly from your desktop.
 
 ---
 
-## 🛠️ Установка и локальный запуск
+## 🛠️ Local Development & Build
+
+### Prerequisites
+* Node.js $\ge 18$ (Node 22 recommended)
+* npm $\ge 9$
+* Android Studio / JDK 17 (only required for local Android compilation)
+
+### Setup & Run
 
 ```bash
-# Клонирование репозитория
+# Clone the repository
 git clone https://github.com/o1egkl/chess-coach.git
 cd chess-coach
 
-# Установка зависимостей
+# Install dependencies
 npm install
 
-# Запуск локального сервера разработки
+# Run Vite development server
 npm run dev
 
-# Проверка шахматных задач автотестом
+# Run puzzle rule validation test
 node scripts/validate_puzzles.cjs
 
-# Сборка веб-версии
+# Build web distribution
 npm run build
 
-# Запуск десктопного приложения Electron в режиме разработки
+# Run Electron desktop app in development
 npm run electron:dev
 
-# Сборка установщика для Windows (.exe)
+# Build Windows installer & portable binary
 npm run electron:build
 
-# Синхронизация с Android-проектом Capacitor
+# Sync web assets to Capacitor Android project
 npx cap sync android
 ```
 
 ---
 
-## 🏷️ Создание новой версии приложения
+## 🏷️ Releasing New Versions
 
-Чтобы автоматически поднять версию и выпустить официальный релиз с новыми сборками:
+To create a new version tag and automatically publish release assets via GitHub Actions:
 
 ```bash
-# Выпуск патч-релиза (например, 1.0.0 -> 1.0.1)
+# Patch release (e.g. 1.0.0 -> 1.0.1)
 npm run release:patch
 
-# Или минорного релиза (1.0.0 -> 1.1.0)
+# Minor release (e.g. 1.0.0 -> 1.1.0)
 npm run release:minor
 
-# Или мажорного релиза (1.0.0 -> 2.0.0)
+# Major release (e.g. 1.0.0 -> 2.0.0)
 npm run release:major
 ```
 
-GitHub Actions автоматически перехватит тег версии, соберёт APK, AAB и Windows .exe и опубликует официальный релиз!
-
 ---
 
-## 📂 Структура проекта
+## 📂 Project Architecture
 
 ```text
 chess-coach/
-├── .github/workflows/        # CI/CD автоматической сборки Android и Windows
-├── android/                  # Нативный проект Capacitor Android
-├── electron/                 # Главный процесс Electron и десктопные файлы
+├── .github/workflows/        # Automated CI/CD pipeline for Android & Windows
+├── android/                  # Native Capacitor Android project
+├── electron/                 # Electron main process & desktop entry point
 ├── public/
-│   ├── stockfish/            # Stockfish 16 (JS + WASM)
-│   ├── chess-icon.svg        # Иконка приложения
-│   ├── manifest.json         # PWA манифест
-│   └── sw.js                 # Service Worker
+│   ├── stockfish/            # Stockfish 16 WASM & Web Worker scripts
+│   ├── chess-icon.svg        # Application branding icon
+│   ├── manifest.json         # PWA configuration
+│   └── sw.js                 # Offline Service Worker precache
 ├── scripts/
-│   └── validate_puzzles.cjs  # Автотест легальности шахматных задач
+│   └── validate_puzzles.cjs  # Automated puzzle legality test suite
 ├── src/
-│   ├── components/           # Компоненты UI (доска, тренер, графики, модалки)
-│   ├── config/               # Конфигурация уровней, дебютов и задач
-│   ├── context/              # Контекст языка и темы
-│   ├── engine/               # Контроллер Stockfish, анализ, эвристики, звуки
-│   ├── i18n/                 # Словари локализации (RU, EN, TR)
-│   ├── services/             # Сервис локального хранилища и профиля
-│   ├── types/                # TypeScript определения
-│   ├── App.tsx               # Корневой интерфейс
-│   └── main.tsx              # Точка входа React
+│   ├── components/           # UI components (Board, Coach, Modals, Puzzles, Charts)
+│   ├── config/               # Bot levels, tactical puzzles, opening book
+│   ├── context/              # LanguageContext & theme state
+│   ├── engine/               # Stockfish controller, coach heuristics, sound engine
+│   ├── i18n/                 # Localization dictionaries (RU, EN, TR)
+│   ├── services/             # Storage & player profile service
+│   ├── types/                # TypeScript interfaces and game types
+│   ├── App.tsx               # Root application view & state manager
+│   └── main.tsx              # React DOM entry point
 ├── package.json
 └── vite.config.ts
 ```
 
 ---
 
-## 📄 Лицензия
+## 📄 License
 
-MIT License. Открытый образовательный проект. Движок Stockfish лицензирован под GPLv3.
+MIT License. Open-source educational project. Stockfish engine is licensed under GPLv3.

@@ -1,6 +1,6 @@
 # Chess Coach — Eğitici Satranç Platformu (400–2420+ Elo)
 
-🌍 **Language / Язык / Dil**: [English](README.en.md) | [Русский](README.md) | [Türkçe](README.tr.md)
+🌍 **Language / Язык / Dil**: [English](README.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md)
 
 **React 18, TypeScript, Tailwind CSS, Chessground ve Stockfish 16 WASM** teknolojileriyle geliştirilmiş çapraz platform eğitici satranç uygulaması (**Web, Windows Masaüstü ve Android**).
 
