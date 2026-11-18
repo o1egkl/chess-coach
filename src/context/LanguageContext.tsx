@@ -14,6 +14,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const STORAGE_LANG_KEY = 'chess_coach_lang';
+const STORAGE_MODAL_SHOWN_KEY = 'chess_coach_welcome_lang_shown_v2';
 const VALID_LANGUAGES: Language[] = ['ru', 'en', 'tr', 'he', 'uk', 'es', 'de'];
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -36,10 +37,21 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return 'ru';
   });
 
-  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(() => {
-    // If user has never selected a language before, show language modal at start of game
-    return !localStorage.getItem(STORAGE_LANG_KEY);
+  const [isLanguageModalOpen, setIsLanguageModalOpenState] = useState<boolean>(() => {
+    // Show modal on first load of v2 language release so users discover the new languages
+    return !localStorage.getItem(STORAGE_MODAL_SHOWN_KEY);
   });
+
+  const setIsLanguageModalOpen = useCallback((open: boolean) => {
+    if (!open) {
+      try {
+        localStorage.setItem(STORAGE_MODAL_SHOWN_KEY, 'true');
+      } catch (e) {
+        // ignore
+      }
+    }
+    setIsLanguageModalOpenState(open);
+  }, []);
 
   const isRtl = isRTL(language);
 
