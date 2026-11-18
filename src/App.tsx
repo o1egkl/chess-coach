@@ -798,6 +798,8 @@ export const App: React.FC = () => {
                   ? '🇪🇸'
                   : language === 'de'
                   ? '🇩🇪'
+                  : language === 'fr'
+                  ? '🇫🇷'
                   : '🇬🇧'}
               </span>
               <span className="font-mono text-[11px] uppercase font-bold">{language.toUpperCase()}</span>

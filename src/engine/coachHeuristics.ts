@@ -66,6 +66,14 @@ const PIECE_NAMES: Record<Language, Record<PieceSymbol, string>> = {
     q: 'Dame',
     k: 'König',
   },
+  fr: {
+    p: 'pion',
+    n: 'cavalier',
+    b: 'fou',
+    r: 'tour',
+    q: 'dame',
+    k: 'roi',
+  },
 };
 
 // Russian Accusative for "обратить внимание на ..."
@@ -138,6 +146,14 @@ const YOUR_PIECE: Record<Language, Record<PieceSymbol, string>> = {
     q: 'Deine Dame',
     k: 'Dein König',
   },
+  fr: {
+    p: 'Votre pion',
+    n: 'Votre cavalier',
+    b: 'Votre fou',
+    r: 'Votre tour',
+    q: 'Votre dame',
+    k: 'Votre roi',
+  },
   he: {
     p: 'הרגלי שלך',
     n: 'הפרש שלך',
@@ -208,6 +224,8 @@ export function analyzeThreatsAndHints(
       ? 'Controla el centro y desarrolla tus piezas armónicamente.'
       : lang === 'de'
       ? 'Kontrolliere das Zentrum und entwickle deine Figuren harmonisch.'
+      : lang === 'fr'
+      ? 'Contrôlez le centre et développez vos pièces avec harmonie.'
       : lang === 'he'
       ? 'שלוט במרכז ופתח את הכלים בהרמוניה.'
       : 'Control the center and develop your pieces harmoniously.';
@@ -229,6 +247,8 @@ export function analyzeThreatsAndHints(
           nudgeMessage = `¡Cuidado, pieza bajo ataque! El entrenador recomienda mover el ${PIECE_NAMES.es[piece.type]} en ${fromLabel}.`;
         } else if (lang === 'de') {
           nudgeMessage = `Vorsicht, Figur wird angegriffen! Der Trainer empfiehlt, den ${PIECE_NAMES.de[piece.type]} auf ${fromLabel} zu ziehen.`;
+        } else if (lang === 'fr') {
+          nudgeMessage = `Attention, pièce attaquée ! L'entraîneur conseille : ${PIECE_NAMES.fr[piece.type]} en ${fromLabel}. Trouvez-lui une case active.`;
         } else if (lang === 'he') {
           nudgeMessage = `זהירות, כלי מותקף! המאמן ממליץ להזיז את ה${PIECE_NAMES.he[piece.type]} ב-${fromLabel}.`;
         } else {
@@ -245,6 +265,8 @@ export function analyzeThreatsAndHints(
           nudgeMessage = `El entrenador recomienda prestar atención al ${PIECE_NAMES.es[piece.type]} en ${fromLabel}. Encuentra una buena continuación para esta pieza.`;
         } else if (lang === 'de') {
           nudgeMessage = `Der Trainer empfiehlt, den Fokus auf den ${PIECE_NAMES.de[piece.type]} auf ${fromLabel} zu richten.`;
+        } else if (lang === 'fr') {
+          nudgeMessage = `L'entraîneur recommande de porter attention au ${PIECE_NAMES.fr[piece.type]} en ${fromLabel}. Trouvez une suite active pour cette pièce.`;
         } else if (lang === 'he') {
           nudgeMessage = `המאמן ממליץ לשים לב ל${PIECE_NAMES.he[piece.type]} ב-${fromLabel}. מצא המשך חזק עבורו.`;
         } else {
@@ -268,6 +290,8 @@ export function analyzeThreatsAndHints(
           nudgeMessage = `¡Cuidado! ¡${YOUR_PIECE.es[piece.type]} en la casilla ${sqLabel} está bajo ataque y sin defensa!`;
         } else if (lang === 'de') {
           nudgeMessage = `Vorsicht! ${YOUR_PIECE.de[piece.type]} auf Feld ${sqLabel} wird ungedeckt angegriffen!`;
+        } else if (lang === 'fr') {
+          nudgeMessage = `Attention ! ${YOUR_PIECE.fr[piece.type]} sur la case ${sqLabel} est sous le feu adverse et sans protection !`;
         } else if (lang === 'he') {
           nudgeMessage = `זהירות! ${YOUR_PIECE.he[piece.type]} במשבצת ${sqLabel} מותקף ללא הגנה!`;
         } else {
@@ -284,6 +308,8 @@ export function analyzeThreatsAndHints(
           nudgeMessage = `¡Oportunidad táctica! ¡La pieza rival (${PIECE_NAMES.es[piece.type]} en ${sqLabel}) quedó indefensa!`;
         } else if (lang === 'de') {
           nudgeMessage = `Taktische Chance! Die gegnerische Figur (${PIECE_NAMES.de[piece.type]} auf ${sqLabel}) ist ungedeckt!`;
+        } else if (lang === 'fr') {
+          nudgeMessage = `Opportunité tactique ! La pièce adverse (${PIECE_NAMES.fr[piece.type]} en ${sqLabel}) est restée sans défense !`;
         } else if (lang === 'he') {
           nudgeMessage = `הזדמנות טקטית! כלי היריב (${PIECE_NAMES.he[piece.type]} ב-${sqLabel}) נותר ללא הגנה!`;
         } else {

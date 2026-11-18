@@ -1,4 +1,4 @@
-export type Language = 'ru' | 'en' | 'tr' | 'he' | 'uk' | 'es' | 'de';
+export type Language = 'ru' | 'en' | 'tr' | 'he' | 'uk' | 'es' | 'de' | 'fr';
 
 export interface TranslationDictionary {
   [key: string]: string;

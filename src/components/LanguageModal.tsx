@@ -19,6 +19,7 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'es', flag: '🇪🇸', name: 'Español', nativeDesc: 'Interfaz, entrenador y pistas' },
   { code: 'de', flag: '🇩🇪', name: 'Deutsch', nativeDesc: 'Oberfläche, Trainer und Hinweise' },
   { code: 'tr', flag: '🇹🇷', name: 'Türkçe', nativeDesc: 'Arayüz, antrenör ve ipuçları' },
+  { code: 'fr', flag: '🇫🇷', name: 'Français', nativeDesc: 'Interface, entraîneur et indices' },
 ];
 
 export const LanguageModal: React.FC = () => {
@@ -44,6 +45,8 @@ export const LanguageModal: React.FC = () => {
         return 'Puedes cambiar el idioma en cualquier momento desde la barra superior.';
       case 'de':
         return 'Du kannst die Sprache jederzeit in der oberen Menüleiste ändern.';
+      case 'fr':
+        return 'Vous pouvez changer de langue à tout moment depuis la barre supérieure.';
       case 'tr':
         return 'Dili dilediğiniz zaman üst menüden değiştirebilirsiniz.';
       case 'ru':
@@ -75,7 +78,7 @@ export const LanguageModal: React.FC = () => {
               <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             </h2>
             <p className="text-[11px] text-slate-400 truncate">
-              7 Languages Available / 7 языков / 7 שפות זמינות
+              8 Languages Available / 8 языков / 8 שפות זמינות
             </p>
           </div>
         </div>

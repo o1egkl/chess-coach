@@ -15,7 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const STORAGE_LANG_KEY = 'chess_coach_lang';
 const STORAGE_MODAL_SHOWN_KEY = 'chess_coach_welcome_lang_shown_v2';
-const VALID_LANGUAGES: Language[] = ['ru', 'en', 'tr', 'he', 'uk', 'es', 'de'];
+const VALID_LANGUAGES: Language[] = ['ru', 'en', 'tr', 'he', 'uk', 'es', 'de', 'fr'];
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
@@ -30,6 +30,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (code.startsWith('uk')) return 'uk';
       if (code.startsWith('es')) return 'es';
       if (code.startsWith('de')) return 'de';
+      if (code.startsWith('fr')) return 'fr';
       if (code.startsWith('tr')) return 'tr';
       if (code.startsWith('en')) return 'en';
       if (code.startsWith('ru')) return 'ru';
