@@ -116,15 +116,22 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
         <div className="flex items-center gap-1">
           <Palette className="w-3.5 h-3.5 text-slate-400" />
-          <span>{language === 'ru' ? 'Тема доски:' : language === 'tr' ? 'Tema:' : 'Theme:'}</span>
+          <span>
+            {language === 'ru' ? 'Тема доски:' :
+             language === 'uk' ? 'Тема дошки:' :
+             language === 'tr' ? 'Tema:' :
+             language === 'es' ? 'Tema:' :
+             language === 'de' ? 'Brettdesign:' :
+             language === 'he' ? 'ערכת לוח:' : 'Theme:'}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           {(['green', 'wood', 'blue', 'graphite'] as BoardTheme[]).map((thm) => {
             const labels: Record<BoardTheme, Record<Language, string>> = {
-              green: { ru: 'Турнир', en: 'Green', tr: 'Yeşil' },
-              wood: { ru: 'Дерево', en: 'Wood', tr: 'Ahşap' },
-              blue: { ru: 'Синий', en: 'Blue', tr: 'Mavi' },
-              graphite: { ru: 'Графит', en: 'OLED', tr: 'Grafit' },
+              green: { ru: 'Турнир', en: 'Green', tr: 'Yeşil', he: 'ירוק', uk: 'Турнір', es: 'Verde', de: 'Grün' },
+              wood: { ru: 'Дерево', en: 'Wood', tr: 'Ahşap', he: 'עץ', uk: 'Дерево', es: 'Madera', de: 'Holz' },
+              blue: { ru: 'Синий', en: 'Blue', tr: 'Mavi', he: 'כחול', uk: 'Синя', es: 'Azul', de: 'Blau' },
+              graphite: { ru: 'Графит', en: 'OLED', tr: 'Grafit', he: 'גרפיט', uk: 'Графіт', es: 'Grafito', de: 'Graphit' },
             };
             return (
               <button

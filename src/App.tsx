@@ -26,7 +26,7 @@ import { NewGameModal } from './components/NewGameModal';
 import { BookOpen, Target, BarChart2, Swords, Globe, RotateCcw, Undo2, RefreshCw, Flag, Dices } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { language, t, setIsLanguageModalOpen } = useLanguage();
+  const { language, t, setIsLanguageModalOpen, isRtl } = useLanguage();
 
   // Navigation & Mode
   const [appMode, setAppMode] = useState<'play' | 'puzzles'>('play');
@@ -717,7 +717,10 @@ export const App: React.FC = () => {
   const botRank = getLevelRank(level, language);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+    <div 
+      className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white"
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
       {/* Compact Top Navbar */}
       <header 
         className="bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-3 py-2 shadow-sm"
@@ -779,17 +782,23 @@ export const App: React.FC = () => {
             {/* Language Selector Pill */}
             <button
               onClick={() => setIsLanguageModalOpen(true)}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 px-2 py-1 rounded-lg border border-slate-700 hover:border-slate-600 text-xs text-slate-200 transition shadow-sm font-semibold"
-              title={
-                language === 'ru'
-                  ? 'Сменить язык'
-                  : language === 'tr'
-                  ? 'Dili Değiştir'
-                  : 'Change Language'
-              }
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs text-slate-200 transition shadow-sm font-semibold"
+              title={t('chooseLanguage')}
             >
               <span className="text-sm">
-                {language === 'ru' ? '🇷🇺' : language === 'tr' ? '🇹🇷' : '🇬🇧'}
+                {language === 'ru'
+                  ? '🇷🇺'
+                  : language === 'tr'
+                  ? '🇹🇷'
+                  : language === 'he'
+                  ? '🇮🇱'
+                  : language === 'uk'
+                  ? '🇺🇦'
+                  : language === 'es'
+                  ? '🇪🇸'
+                  : language === 'de'
+                  ? '🇩🇪'
+                  : '🇬🇧'}
               </span>
               <span className="font-mono text-[11px] uppercase font-bold">{language.toUpperCase()}</span>
             </button>

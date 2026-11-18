@@ -1,5 +1,6 @@
 import { LevelConfig } from '../types/chess';
 import { Language } from '../i18n/types';
+import { BOT_TRANSLATIONS } from '../i18n/botTranslations';
 
 export const CHESS_LEVELS: LevelConfig[] = [
   {
@@ -467,18 +468,21 @@ export const CHESS_LEVELS: LevelConfig[] = [
 ];
 
 export function getLevelName(level: LevelConfig, lang: Language): string {
+  if (BOT_TRANSLATIONS[level.id]?.[lang]?.name) return BOT_TRANSLATIONS[level.id]![lang]!.name;
   if (lang === 'tr' && level.nameTr) return level.nameTr;
   if (lang === 'en' && level.nameEn) return level.nameEn;
   return level.name;
 }
 
 export function getLevelRank(level: LevelConfig, lang: Language): string {
+  if (BOT_TRANSLATIONS[level.id]?.[lang]?.rank) return BOT_TRANSLATIONS[level.id]![lang]!.rank;
   if (lang === 'tr' && level.rankTr) return level.rankTr;
   if (lang === 'en' && level.rankEn) return level.rankEn;
   return level.rank;
 }
 
 export function getLevelDescription(level: LevelConfig, lang: Language): string {
+  if (BOT_TRANSLATIONS[level.id]?.[lang]?.description) return BOT_TRANSLATIONS[level.id]![lang]!.description;
   if (lang === 'tr' && level.descriptionTr) return level.descriptionTr;
   if (lang === 'en' && level.descriptionEn) return level.descriptionEn;
   return level.description;

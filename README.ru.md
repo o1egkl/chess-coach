@@ -1,5 +1,9 @@
 # Chess Coach — Обучающая шахматная игра (400–2420+ Elo)
 
+<p align="center">
+  <img src="public/chess-coach-logo.png" width="160" alt="Chess Coach Logo" />
+</p>
+
 🌍 **Language / Язык / Dil**: [English](README.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md)
 
 Кроссплатформенная шахматная платформа (**Web, Windows Desktop и Android**), созданная на **React 18, TypeScript, Tailwind CSS, Chessground и Stockfish 16 WASM**.

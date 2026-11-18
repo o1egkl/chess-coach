@@ -1,5 +1,9 @@
 # Chess Coach — Educational Chess Platform (400–2420+ Elo)
 
+<p align="center">
+  <img src="public/chess-coach-logo.png" width="160" alt="Chess Coach Logo" />
+</p>
+
 🌍 **Language / Язык / Dil**: [English](README.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md)
 
 Cross-platform educational chess application (**Web, Windows Desktop & Android**) built with **React 18, TypeScript, Tailwind CSS, Chessground, and Stockfish 16 WASM**.
