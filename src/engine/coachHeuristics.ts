@@ -230,48 +230,66 @@ export function analyzeThreatsAndHints(
       ? 'שלוט במרכז ופתח את הכלים בהרמוניה.'
       : 'Control the center and develop your pieces harmoniously.';
 
-  if (bestMoveUci && bestMoveUci.length >= 4) {
+  // Validate if bestMoveUci belongs to player and is strictly legal in the current position
+  let isValidPlayerBestMove = false;
+  let pieceForBestMove: { type: PieceSymbol; color: ChessColor } | null = null;
+  let fromSquare: Square | null = null;
+
+  if (bestMoveUci && bestMoveUci.length >= 4 && chess.turn() === playerChessColor) {
     const from = bestMoveUci.substring(0, 2) as Square;
+    const to = bestMoveUci.substring(2, 4) as Square;
     const piece = chess.get(from);
-    if (piece) {
-      const fromLabel = from.toUpperCase();
-      const isUnderAttack = threatenedSquares.includes(from);
-      if (isUnderAttack) {
-        if (lang === 'ru') {
-          nudgeMessage = `Осторожно, фигура под боем! Тренер рекомендует ход: ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите для неё сильное поле.`;
-        } else if (lang === 'uk') {
-          nudgeMessage = `Обережно, фігура під боєм! Тренер рекомендує хід: ${UK_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Знайдіть для неї сильне поле.`;
-        } else if (lang === 'tr') {
-          nudgeMessage = `Dikkat, taş tehdit altında! Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} oynamanızı öneriyor.`;
-        } else if (lang === 'es') {
-          nudgeMessage = `¡Cuidado, pieza bajo ataque! El entrenador recomienda mover el ${PIECE_NAMES.es[piece.type]} en ${fromLabel}.`;
-        } else if (lang === 'de') {
-          nudgeMessage = `Vorsicht, Figur wird angegriffen! Der Trainer empfiehlt, den ${PIECE_NAMES.de[piece.type]} auf ${fromLabel} zu ziehen.`;
-        } else if (lang === 'fr') {
-          nudgeMessage = `Attention, pièce attaquée ! L'entraîneur conseille : ${PIECE_NAMES.fr[piece.type]} en ${fromLabel}. Trouvez-lui une case active.`;
-        } else if (lang === 'he') {
-          nudgeMessage = `זהירות, כלי מותקף! המאמן ממליץ להזיז את ה${PIECE_NAMES.he[piece.type]} ב-${fromLabel}.`;
-        } else {
-          nudgeMessage = `Caution, piece under attack! The coach recommends moving the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}.`;
-        }
+
+    if (piece && piece.color === playerChessColor) {
+      const isLegal = chess.moves({ verbose: true }).some(
+        (m) => m.from === from && m.to === to
+      );
+      if (isLegal) {
+        isValidPlayerBestMove = true;
+        pieceForBestMove = piece;
+        fromSquare = from;
+      }
+    }
+  }
+
+  if (isValidPlayerBestMove && pieceForBestMove && fromSquare) {
+    const fromLabel = fromSquare.toUpperCase();
+    const isUnderAttack = threatenedSquares.includes(fromSquare);
+    if (isUnderAttack) {
+      if (lang === 'ru') {
+        nudgeMessage = `Осторожно, фигура под боем! Тренер рекомендует ход: ${RU_ACCUSATIVE_PIECES[pieceForBestMove.type]} на ${fromLabel}. Найдите для неё сильное поле.`;
+      } else if (lang === 'uk') {
+        nudgeMessage = `Обережно, фігура під боєм! Тренер рекомендує хід: ${UK_ACCUSATIVE_PIECES[pieceForBestMove.type]} на ${fromLabel}. Знайдіть для неї сильне поле.`;
+      } else if (lang === 'tr') {
+        nudgeMessage = `Dikkat, taş tehdit altında! Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[pieceForBestMove.type]} oynamanızı öneriyor.`;
+      } else if (lang === 'es') {
+        nudgeMessage = `¡Cuidado, pieza bajo ataque! El entrenador recomienda mover el ${PIECE_NAMES.es[pieceForBestMove.type]} en ${fromLabel}.`;
+      } else if (lang === 'de') {
+        nudgeMessage = `Vorsicht, Figur wird angegriffen! Der Trainer empfiehlt, den ${PIECE_NAMES.de[pieceForBestMove.type]} auf ${fromLabel} zu ziehen.`;
+      } else if (lang === 'fr') {
+        nudgeMessage = `Attention, pièce attaquée ! L'entraîneur conseille : ${PIECE_NAMES.fr[pieceForBestMove.type]} en ${fromLabel}. Trouvez-lui une case active.`;
+      } else if (lang === 'he') {
+        nudgeMessage = `זהירות, כלי מותקף! המаמן ממליץ להזיז את ה${PIECE_NAMES.he[pieceForBestMove.type]} ב-${fromLabel}.`;
       } else {
-        if (lang === 'ru') {
-          nudgeMessage = `Тренер рекомендует обратить внимание на ${RU_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Найдите сильное продолжение для этой фигуры.`;
-        } else if (lang === 'uk') {
-          nudgeMessage = `Тренер рекомендує звернути увагу на ${UK_ACCUSATIVE_PIECES[piece.type]} на ${fromLabel}. Знайдіть активне продовження для цієї фігури.`;
-        } else if (lang === 'tr') {
-          nudgeMessage = `Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[piece.type]} odaklanmanızı öneriyor. Bu taş için aktif bir devam yolu bulun.`;
-        } else if (lang === 'es') {
-          nudgeMessage = `El entrenador recomienda prestar atención al ${PIECE_NAMES.es[piece.type]} en ${fromLabel}. Encuentra una buena continuación para esta pieza.`;
-        } else if (lang === 'de') {
-          nudgeMessage = `Der Trainer empfiehlt, den Fokus auf den ${PIECE_NAMES.de[piece.type]} auf ${fromLabel} zu richten.`;
-        } else if (lang === 'fr') {
-          nudgeMessage = `L'entraîneur recommande de porter attention au ${PIECE_NAMES.fr[piece.type]} en ${fromLabel}. Trouvez une suite active pour cette pièce.`;
-        } else if (lang === 'he') {
-          nudgeMessage = `המאמן ממליץ לשים לב ל${PIECE_NAMES.he[piece.type]} ב-${fromLabel}. מצא המשך חזק עבורו.`;
-        } else {
-          nudgeMessage = `The coach recommends focusing on the ${PIECE_NAMES.en[piece.type]} on ${fromLabel}. Find an active continuation for this piece.`;
-        }
+        nudgeMessage = `Caution, piece under attack! The coach recommends moving the ${PIECE_NAMES.en[pieceForBestMove.type]} on ${fromLabel}.`;
+      }
+    } else {
+      if (lang === 'ru') {
+        nudgeMessage = `Тренер рекомендует обратить внимание на ${RU_ACCUSATIVE_PIECES[pieceForBestMove.type]} на ${fromLabel}. Найдите сильное продолжение для этой фигуры.`;
+      } else if (lang === 'uk') {
+        nudgeMessage = `Тренер рекомендує звернути увагу на ${UK_ACCUSATIVE_PIECES[pieceForBestMove.type]} на ${fromLabel}. Знайдіть активне продовження для цієї фігури.`;
+      } else if (lang === 'tr') {
+        nudgeMessage = `Koç, ${fromLabel} karesindeki ${PIECE_NAMES.tr[pieceForBestMove.type]} odaklanmanızı öneriyor. Bu taş için aktif bir devam yolu bulun.`;
+      } else if (lang === 'es') {
+        nudgeMessage = `El entrenador recomienda prestar atención al ${PIECE_NAMES.es[pieceForBestMove.type]} en ${fromLabel}. Encuentra una buena continuación para esta pieza.`;
+      } else if (lang === 'de') {
+        nudgeMessage = `Der Trainer empfiehlt, den Fokus auf den ${PIECE_NAMES.de[pieceForBestMove.type]} auf ${fromLabel} zu richten.`;
+      } else if (lang === 'fr') {
+        nudgeMessage = `L'entraîneur recommande de porter attention au ${PIECE_NAMES.fr[pieceForBestMove.type]} en ${fromLabel}. Trouvez une suite active pour cette pièce.`;
+      } else if (lang === 'he') {
+        nudgeMessage = `המאמן ממליץ לשים לב ל${PIECE_NAMES.he[pieceForBestMove.type]} ב-${fromLabel}. מצא המשך חזק עבורו.`;
+      } else {
+        nudgeMessage = `The coach recommends focusing on the ${PIECE_NAMES.en[pieceForBestMove.type]} on ${fromLabel}. Find an active continuation for this piece.`;
       }
     }
   } else if (hangingPieces.length > 0) {
@@ -319,9 +337,9 @@ export function analyzeThreatsAndHints(
     }
   }
 
-  // Parse solution move if bestMoveUci provided
+  // Parse solution move if bestMoveUci provided and valid for current player
   let solutionMove: { from: string; to: string; san: string } | undefined = undefined;
-  if (bestMoveUci && bestMoveUci.length >= 4) {
+  if (isValidPlayerBestMove && bestMoveUci && bestMoveUci.length >= 4) {
     const from = bestMoveUci.substring(0, 2);
     const to = bestMoveUci.substring(2, 4);
     const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined;
@@ -330,7 +348,7 @@ export function analyzeThreatsAndHints(
       // Clone chess instance to get SAN
       const clone = new Chess(chess.fen());
       const moveResult = clone.move({ from, to, promotion });
-      if (moveResult) {
+      if (moveResult && moveResult.color === playerChessColor) {
         solutionMove = { from, to, san: moveResult.san };
       }
     } catch {

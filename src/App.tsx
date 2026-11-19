@@ -161,10 +161,21 @@ export const App: React.FC = () => {
         const from = bestMove.substring(0, 2);
         const to = bestMove.substring(2, 4);
 
-        if (stage === 1) {
-          shapes.push({ orig: from as any, brush: 'green' });
-        } else if (stage === 2) {
-          shapes.push({ orig: from as any, dest: to as any, brush: 'green' });
+        // Strict validation: move must belong to player and be legal in currentChess
+        const playerChessColor = playerColor === 'white' ? 'w' : 'b';
+        const isPlayerTurn = currentChess.turn() === playerChessColor;
+        const isLegal =
+          isPlayerTurn &&
+          currentChess.moves({ verbose: true }).some(
+            (m) => m.from === from && m.to === to
+          );
+
+        if (isLegal) {
+          if (stage === 1) {
+            shapes.push({ orig: from as any, brush: 'green' });
+          } else if (stage === 2) {
+            shapes.push({ orig: from as any, dest: to as any, brush: 'green' });
+          }
         }
       }
 
@@ -292,8 +303,18 @@ export const App: React.FC = () => {
                 engine.evaluatePositionOnly(nextChess.fen(), 10, (evalData) => {
                   setEvaluation(evalData);
                   if (evalData.bestMove) {
-                    setCachedHintMove(evalData.bestMove);
-                    cachedHintMoveRef.current = evalData.bestMove;
+                    const playerChessColor = playerColor === 'white' ? 'w' : 'b';
+                    const isLegal =
+                      nextChess.turn() === playerChessColor &&
+                      nextChess.moves({ verbose: true }).some(
+                        (m) =>
+                          m.from === evalData.bestMove?.substring(0, 2) &&
+                          m.to === evalData.bestMove?.substring(2, 4)
+                      );
+                    if (isLegal) {
+                      setCachedHintMove(evalData.bestMove);
+                      cachedHintMoveRef.current = evalData.bestMove;
+                    }
                   }
                 });
               }
@@ -409,42 +430,64 @@ export const App: React.FC = () => {
     updateHintStage(1);
 
     const currentChess = chessRef.current;
+    const playerChessColor = playerColor === 'white' ? 'w' : 'b';
 
-    // If move is already cached, apply nudge instantly
+    // If move is already cached, check if legal and apply nudge instantly
     if (cachedHintMoveRef.current) {
       const move = cachedHintMoveRef.current;
-      const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
-      setCoachMessage(threats.nudgeMessage);
-      updateBoardShapes(1, threatRadarActive, move);
-      return;
+      const isLegal =
+        currentChess.turn() === playerChessColor &&
+        currentChess.moves({ verbose: true }).some(
+          (m) => m.from === move.substring(0, 2) && m.to === move.substring(2, 4)
+        );
+      if (isLegal) {
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
+        setCoachMessage(threats.nudgeMessage);
+        updateBoardShapes(1, threatRadarActive, move);
+        return;
+      } else {
+        cachedHintMoveRef.current = null;
+        setCachedHintMove(null);
+      }
     }
 
     // Evaluate once at consistent depth (depth 10)
     engine.evaluatePositionOnly(currentChess.fen(), 10, (evalData) => {
       setEvaluation(evalData);
       const move = evalData.bestMove;
-      if (move) {
+      const isLegal =
+        move &&
+        currentChess.turn() === playerChessColor &&
+        currentChess.moves({ verbose: true }).some(
+          (m) => m.from === move.substring(0, 2) && m.to === move.substring(2, 4)
+        );
+
+      if (isLegal && move) {
         setCachedHintMove(move);
         cachedHintMoveRef.current = move;
-      }
 
-      // If user progressed to stage 2 while engine was calculating, reveal solution
-      if (hintStageRef.current === 2 && move) {
-        const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
-        if (threats.solutionMove) {
-          setCoachMessage(
-            t('recommendedMove', {
-              move: threats.solutionMove.san,
-              from: threats.solutionMove.from,
-              to: threats.solutionMove.to,
-            })
-          );
+        // If user progressed to stage 2 while engine was calculating, reveal solution
+        if (hintStageRef.current === 2) {
+          const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
+          if (threats.solutionMove) {
+            setCoachMessage(
+              t('recommendedMove', {
+                move: threats.solutionMove.san,
+                from: threats.solutionMove.from,
+                to: threats.solutionMove.to,
+              })
+            );
+          }
+          updateBoardShapes(2, threatRadarActive, move);
+        } else {
+          const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
+          setCoachMessage(threats.nudgeMessage);
+          updateBoardShapes(1, threatRadarActive, move);
         }
-        updateBoardShapes(2, threatRadarActive, move);
-      } else if (move) {
-        const threats = analyzeThreatsAndHints(currentChess, playerColor, move, language);
+      } else {
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, undefined, language);
         setCoachMessage(threats.nudgeMessage);
-        updateBoardShapes(1, threatRadarActive, move);
+        updateBoardShapes(0, threatRadarActive);
       }
     });
   };
@@ -454,6 +497,7 @@ export const App: React.FC = () => {
     updateHintStage(2);
 
     const currentChess = chessRef.current;
+    const playerChessColor = playerColor === 'white' ? 'w' : 'b';
 
     const applySolution = (bestMove: string) => {
       const threats = analyzeThreatsAndHints(currentChess, playerColor, bestMove, language);
@@ -469,19 +513,42 @@ export const App: React.FC = () => {
       updateBoardShapes(2, threatRadarActive, bestMove);
     };
 
-    // If already cached from Nudge (or previous calculation), use the EXACT SAME MOVE instantly!
+    // If already cached from Nudge (or previous calculation), verify legality and use instantly
     if (cachedHintMoveRef.current) {
-      applySolution(cachedHintMoveRef.current);
-      return;
+      const move = cachedHintMoveRef.current;
+      const isLegal =
+        currentChess.turn() === playerChessColor &&
+        currentChess.moves({ verbose: true }).some(
+          (m) => m.from === move.substring(0, 2) && m.to === move.substring(2, 4)
+        );
+      if (isLegal) {
+        applySolution(move);
+        return;
+      } else {
+        cachedHintMoveRef.current = null;
+        setCachedHintMove(null);
+      }
     }
 
     // Otherwise (user clicked Solution directly), evaluate at depth 10, cache, and apply
     engine.evaluatePositionOnly(currentChess.fen(), 10, (evalData) => {
       setEvaluation(evalData);
-      if (evalData.bestMove) {
-        setCachedHintMove(evalData.bestMove);
-        cachedHintMoveRef.current = evalData.bestMove;
-        applySolution(evalData.bestMove);
+      const move = evalData.bestMove;
+      const isLegal =
+        move &&
+        currentChess.turn() === playerChessColor &&
+        currentChess.moves({ verbose: true }).some(
+          (m) => m.from === move.substring(0, 2) && m.to === move.substring(2, 4)
+        );
+
+      if (isLegal && move) {
+        setCachedHintMove(move);
+        cachedHintMoveRef.current = move;
+        applySolution(move);
+      } else {
+        const threats = analyzeThreatsAndHints(currentChess, playerColor, undefined, language);
+        setCoachMessage(threats.nudgeMessage);
+        updateBoardShapes(0, threatRadarActive);
       }
     });
   };

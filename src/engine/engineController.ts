@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js';
 import { EngineEvaluation, LevelConfig } from '../types/chess';
 
 export type BestMoveCallback = (bestMove: string, ponder?: string) => void;
@@ -7,6 +8,8 @@ export class EngineController {
   private worker: Worker | null = null;
   private isReady: boolean = false;
   private isThinking: boolean = false;
+  private pendingAborts: number = 0;
+  private currentFen: string | null = null;
   private currentLevel: LevelConfig | null = null;
   private onBestMove: BestMoveCallback | null = null;
   private onEval: EvalCallback | null = null;
@@ -57,19 +60,23 @@ export class EngineController {
 
     // Parse engine search info: info depth 4 score cp 35 multipv 1 pv e2e4 ...
     if (line.startsWith('info') && line.includes('score')) {
+      if (this.pendingAborts > 0) {
+        // Discard info lines belonging to interrupted search
+        return;
+      }
       this.parseInfoLine(line);
       return;
     }
 
     // Parse bestmove: bestmove e7e5 ponder g1f3
     if (line.startsWith('bestmove')) {
+      if (this.pendingAborts > 0) {
+        this.pendingAborts--;
+        return; // Discard bestmove from interrupted search
+      }
+
       this.isThinking = false;
       this.latestEvaluation.isThinking = false;
-      const evalCb = this.onEval;
-      if (evalCb) {
-        this.onEval = null;
-        evalCb({ ...this.latestEvaluation });
-      }
 
       const parts = line.split(' ');
       const rawBestMove = parts[1];
@@ -99,11 +106,34 @@ export class EngineController {
         }
       }
 
+      // Check legality of raw bestMove in currentFen if available
+      if (rawBestMove && rawBestMove !== '(none)' && this.isMoveLegal(rawBestMove)) {
+        this.latestEvaluation.bestMove = rawBestMove;
+      }
+
+      const evalCb = this.onEval;
+      if (evalCb) {
+        this.onEval = null;
+        evalCb({ ...this.latestEvaluation });
+      }
+
       const cb = this.onBestMove;
       this.onBestMove = null;
       if (cb) {
         cb(selectedMove, ponder);
       }
+    }
+  }
+
+  private isMoveLegal(moveUci: string): boolean {
+    if (!this.currentFen || moveUci.length < 4) return true;
+    try {
+      const chess = new Chess(this.currentFen);
+      const from = moveUci.substring(0, 2);
+      const to = moveUci.substring(2, 4);
+      return chess.moves({ verbose: true }).some((m) => m.from === from && m.to === to);
+    } catch {
+      return false;
     }
   }
 
@@ -138,7 +168,9 @@ export class EngineController {
       firstMove = pvTokens[0];
     }
 
-    if (firstMove) {
+    const isLegal = firstMove ? this.isMoveLegal(firstMove) : false;
+
+    if (firstMove && isLegal) {
       this.pvMoves.set(multipv, { move: firstMove, scoreCp, scoreMate });
     }
 
@@ -148,7 +180,7 @@ export class EngineController {
         depth,
         scoreCp,
         scoreMate,
-        bestMove: firstMove || undefined,
+        bestMove: isLegal ? firstMove : undefined,
         isThinking: this.isThinking,
       };
 
@@ -194,10 +226,18 @@ export class EngineController {
     if (this.isThinking) {
       this.stop();
     }
+    this.currentFen = fen;
     this.setLevel(level);
     this.onBestMove = onMove;
     this.onEval = onEvaluation || null;
     this.pvMoves.clear();
+    this.latestEvaluation = {
+      depth: 0,
+      scoreCp: 0,
+      scoreMate: null,
+      bestMove: undefined,
+      isThinking: true,
+    };
     this.isThinking = true;
 
     this.sendCommand(`position fen ${fen}`);
@@ -209,16 +249,30 @@ export class EngineController {
     if (this.isThinking) {
       this.stop();
     }
+    this.currentFen = fen;
     this.onBestMove = null;
     this.onEval = onEvaluation;
+    this.pvMoves.clear();
+    this.latestEvaluation = {
+      depth: 0,
+      scoreCp: 0,
+      scoreMate: null,
+      bestMove: undefined,
+      isThinking: true,
+    };
     this.isThinking = true;
     this.sendCommand(`position fen ${fen}`);
     this.sendCommand(`go depth ${depth}`);
   }
 
   public stop() {
-    this.sendCommand('stop');
-    this.isThinking = false;
+    if (this.isThinking) {
+      this.pendingAborts++;
+      this.sendCommand('stop');
+      this.isThinking = false;
+    }
+    this.onBestMove = null;
+    this.onEval = null;
   }
 
   public destroy() {
