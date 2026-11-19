@@ -132,13 +132,13 @@ export const App: React.FC = () => {
   }, [language, t, moveHistory.length]);
 
   // Determine game phase
-  const getGamePhase = (): 'Дебют' | 'Миттельшпиль' | 'Эндшпиль' => {
+  const getGamePhase = (): 'opening' | 'middlegame' | 'endgame' => {
     const moveCount = Math.floor(moveHistory.length / 2);
-    if (moveCount < 10) return 'Дебют';
+    if (moveCount < 10) return 'opening';
     const fen = chessRef.current.fen().split(' ')[0];
     const pieces = fen.replace(/[^qrbnpQRBNP]/g, '').length;
-    if (pieces <= 10) return 'Эндшпиль';
-    return 'Миттельшпиль';
+    if (pieces <= 10) return 'endgame';
+    return 'middlegame';
   };
 
   // Re-calculate custom shapes on the board (threat radar, hint arrows)
@@ -218,7 +218,7 @@ export const App: React.FC = () => {
         eloDelta: record.eloDelta,
         newElo: record.updatedProfile.elo,
         unlockedLevelName: unlockedLvl
-          ? `${unlockedLvl.id}. ${botDisplayName} (${unlockedLvl.elo} ${language === 'en' ? 'Elo' : 'Эло'})`
+          ? `${unlockedLvl.id}. ${botDisplayName} (${unlockedLvl.elo} ${t('elo')})`
           : undefined,
       });
 
@@ -525,23 +525,11 @@ export const App: React.FC = () => {
 
     const botName = getLevelName(level, language);
     if (resolvedColor === 'black') {
-      setCoachMessage(
-        language === 'ru'
-          ? `Вы играете чёрными против "${botName}". Бот начинает партию...`
-          : language === 'tr'
-          ? `Siyah taşlarla "${botName}" karşısındasınız. Bot oyunu başlatıyor...`
-          : `Playing as Black vs "${botName}". Bot is making the opening move...`
-      );
+      setCoachMessage(t('playingAsBlackAgainst', { bot: botName }));
       // Immediately trigger bot move as White
       triggerBotMove(freshChess);
     } else {
-      setCoachMessage(
-        language === 'ru'
-          ? `Вы играете белыми против "${botName}". Ваш первый ход!`
-          : language === 'tr'
-          ? `Beyaz taşlarla "${botName}" karşısındasınız. İlk hamle sizde!`
-          : `Playing as White vs "${botName}". Make your first move!`
-      );
+      setCoachMessage(t('playingAsWhiteAgainst', { bot: botName }));
     }
   };
 
@@ -568,7 +556,8 @@ export const App: React.FC = () => {
         (pct) => {
           setAnalysisProgress(pct);
         },
-        playerColor
+        playerColor,
+        language
       );
       setGameReport(report);
 
@@ -587,7 +576,7 @@ export const App: React.FC = () => {
     } finally {
       setIsAnalyzingGame(false);
     }
-  }, [moveHistory, level.id, playerColor]);
+  }, [moveHistory, level.id, playerColor, language]);
 
   const handleOpenMistakeDrill = () => {
     setIsPostGameModalOpen(false);
@@ -603,9 +592,7 @@ export const App: React.FC = () => {
     const botName = getLevelName(newLevel, language);
     const botDesc = getLevelDescription(newLevel, language);
     setCoachMessage(
-      language === 'en'
-        ? `Selected Level ${newLevel.id}: ${botName} (${newLevel.elo} Elo). ${botDesc}`
-        : `Выбран уровень ${newLevel.id}: ${botName} (${newLevel.elo} Эло). ${botDesc}`
+      t('levelSelectedDesc', { id: newLevel.id, bot: botName, elo: newLevel.elo, desc: botDesc })
     );
   };
 
@@ -636,11 +623,7 @@ export const App: React.FC = () => {
       setTakebacksRemaining((prev) => prev - 1);
     }
 
-    setCoachMessage(
-      language === 'en'
-        ? 'Move taken back. Find a stronger continuation!'
-        : 'Ход возвращен. Найдите более сильное продолжение!'
-    );
+    setCoachMessage(t('moveRetractedDesc'));
   };
 
   // Flip Board
@@ -680,15 +663,7 @@ export const App: React.FC = () => {
   // Player Color Selection (from Color bar or GameControls)
   const handleSelectColor = (choice: ColorChoice) => {
     if (moveHistory.length > 0 && !chess.isGameOver()) {
-      if (
-        !window.confirm(
-          language === 'ru'
-            ? 'Начать новую партию выбранным цветом?'
-            : language === 'tr'
-            ? 'Seçilen renkle yeni bir oyuna başlansın mı? Devam edilsin mi?'
-            : 'Starting a new game with the chosen color. Continue?'
-        )
-      ) {
+      if (!window.confirm(t('startNewGameConfirm'))) {
         return;
       }
     }
@@ -763,14 +738,14 @@ export const App: React.FC = () => {
             >
               <Target className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t('navPuzzles')}</span>
-              <span className="sm:hidden">{language === 'en' ? 'Puzzles' : 'Задачи'}</span>
+              <span className="sm:hidden">{t('puzzles')}</span>
             </button>
 
             {moveHistory.length > 0 && (
               <button
                 onClick={handleTriggerAnalysis}
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-amber-300 hover:text-white hover:bg-slate-750 transition"
-                title={language === 'en' ? 'Review played game' : 'Разобрать сыгранную партию'}
+                title={t('reviewGameTitle')}
               >
                 <BarChart2 className="w-3.5 h-3.5" />
                 <span>{t('navReview')}</span>
@@ -809,13 +784,7 @@ export const App: React.FC = () => {
             <button
               onClick={() => setIsProfileOpen(true)}
               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs transition shadow-sm"
-              title={
-                language === 'ru'
-                  ? 'Открыть профиль и статистику игрока'
-                  : language === 'tr'
-                  ? 'Oyuncu profilini ve istatistikleri aç'
-                  : 'Open Player Profile'
-              }
+              title={t('openProfileTitle')}
             >
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[11px] font-bold">
                 👤
@@ -825,7 +794,7 @@ export const App: React.FC = () => {
                   {profile.name}
                 </div>
                 <div className="text-[9px] text-emerald-400 font-mono">
-                  {profile.elo} {language === 'en' ? 'Elo' : 'Эло'}
+                  {profile.elo} {t('elo')}
                 </div>
               </div>
             </button>
@@ -838,7 +807,7 @@ export const App: React.FC = () => {
                   {botName}
                 </div>
                 <div className="text-[9px] text-amber-400 font-mono">
-                  {level.elo} {language === 'en' ? 'Elo' : 'Эло'} • {botRank}
+                  {level.elo} {t('elo')} • {botRank}
                 </div>
               </div>
             </div>
@@ -894,27 +863,21 @@ export const App: React.FC = () => {
                 <span className="text-xl">{level.avatar}</span>
                 <div>
                   <span className="font-bold text-slate-100 text-[12px] flex items-center gap-1.5">
-                    {language === 'en' ? `Bot ${botName}` : `Бот ${botName}`}
+                    {t('botPrefix')} {botName}
                     {isBotThinking && (
                       <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-normal animate-pulse">
-                        {language === 'en' ? 'thinking...' : 'думает...'}
+                        {t('botThinkingShort')}
                       </span>
                     )}
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">
-                    {botRank} ({level.elo} {language === 'en' ? 'Elo' : 'Эло'})
+                    {botRank} ({level.elo} {t('elo')})
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 font-mono text-slate-400 text-[11px]">
                 <span>
-                  {playerColor === 'white'
-                    ? language === 'en'
-                      ? 'Black'
-                      : 'Черные'
-                    : language === 'en'
-                    ? 'White'
-                    : 'Белые'}
+                  {playerColor === 'white' ? t('pieceColorBlack') : t('pieceColorWhite')}
                 </span>
                 <span className="text-sm">{playerColor === 'white' ? '♚' : '♔'}</span>
               </div>
@@ -954,26 +917,18 @@ export const App: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-bold text-slate-100 text-[12px]">
-                    {language === 'en' ? 'You (Player)' : 'Вы (Игрок)'}
+                    {t('youPlayer')}
                   </span>
                   <span className="block text-[10px] text-emerald-400 font-mono">
                     {isPlayerTurn && !isBotThinking
                       ? t('yourTurn')
-                      : language === 'en'
-                      ? 'Waiting for opponent'
-                      : 'Ожидание соперника'}
+                      : t('waitingOpponent')}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 font-mono text-slate-400 text-[11px]">
                 <span>
-                  {playerColor === 'white'
-                    ? language === 'en'
-                      ? 'White'
-                      : 'Белые'
-                    : language === 'en'
-                      ? 'Black'
-                      : 'Черные'}
+                  {playerColor === 'white' ? t('pieceColorWhite') : t('pieceColorBlack')}
                 </span>
                 <span className="text-sm">{playerColor === 'white' ? '♔' : '♚'}</span>
               </div>
@@ -1031,10 +986,10 @@ export const App: React.FC = () => {
               <button
                 onClick={handleFlipBoard}
                 className="py-1.5 px-2 bg-slate-800 hover:bg-slate-750 active:bg-slate-900 text-slate-200 hover:text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 border border-slate-700 transition shadow-sm"
-                title={language === 'en' ? 'Flip board' : 'Перевернуть доску'}
+                title={t('flipBoard')}
               >
                 <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="truncate">{language === 'en' ? 'Flip' : 'Поворот'}</span>
+                <span className="truncate">{t('flip')}</span>
               </button>
 
               <button
@@ -1054,7 +1009,7 @@ export const App: React.FC = () => {
               style={{ width: `${boardSize + 26}px`, maxWidth: '100%' }}
             >
               <div className="flex items-center gap-1.5 text-slate-300 font-semibold text-[11px]">
-                <span>{language === 'ru' ? 'Сторона:' : language === 'tr' ? 'Taraf:' : 'Side:'}</span>
+                <span>{t('sideLabel')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
@@ -1120,36 +1075,12 @@ export const App: React.FC = () => {
             <div className="bg-slate-850/60 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-slate-200 text-[11px]">
                 <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-                <span>
-                  {language === 'ru'
-                    ? 'Главные правила шахматиста:'
-                    : language === 'tr'
-                    ? 'Temel Satranç Kuralları:'
-                    : 'Key Chess Principles:'}
-                </span>
+                <span>{t('keyRulesTitle')}</span>
               </div>
               <ul className="list-disc list-inside space-y-0.5 text-slate-400 text-[10px] leading-relaxed">
-                <li>
-                  {language === 'ru'
-                    ? 'Развивайте коней и слонов перед атакой.'
-                    : language === 'tr'
-                    ? 'Saldırıdan önce hafif taşları (at ve filleri) geliştirin.'
-                    : 'Develop minor pieces (knights & bishops) before attacking.'}
-                </li>
-                <li>
-                  {language === 'ru'
-                    ? 'Сделайте рокировку до 10-го хода.'
-                    : language === 'tr'
-                    ? 'Şahınızı güvenceye almak için erken rok yapın.'
-                    : 'Castle early to keep your king safe.'}
-                </li>
-                <li>
-                  {language === 'ru'
-                    ? 'Проверяйте шахи и взятия соперника перед ходом.'
-                    : language === 'tr'
-                    ? 'Her hamleden önce rakibin şah ve taş alma tehditlerini kontrol edin.'
-                    : 'Check opponent checks and captures before each move.'}
-                </li>
+                <li>{t('keyRule1')}</li>
+                <li>{t('keyRule2')}</li>
+                <li>{t('keyRule3')}</li>
               </ul>
               <div className="mt-3 pt-2 border-t border-slate-700/40 text-center">
                 <a
@@ -1158,7 +1089,7 @@ export const App: React.FC = () => {
                   rel="noopener noreferrer"
                   className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors underline"
                 >
-                  {language === 'ru' ? 'Политика конфиденциальности' : language === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}
+                  {t('privacyPolicy')}
                 </a>
               </div>
             </div>
@@ -1201,14 +1132,7 @@ export const App: React.FC = () => {
       <PostGameModal
         isOpen={isPostGameModalOpen}
         result={gameOver ? gameOver.result : 'in_progress'}
-        reason={
-          gameOver?.reason ||
-          (language === 'ru'
-            ? 'Партия ещё продолжается'
-            : language === 'tr'
-            ? 'Oyun devam ediyor'
-            : 'Game in progress')
-        }
+        reason={gameOver?.reason || t('gameInProgress')}
         report={gameReport}
         isAnalyzing={isAnalyzingGame}
         analysisProgress={analysisProgress}

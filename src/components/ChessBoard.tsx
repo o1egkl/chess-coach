@@ -5,6 +5,7 @@ import { DrawShape } from 'chessground/draw';
 import { Chess, Square } from 'chess.js';
 import { Key } from 'chessground/types';
 import { Color, BoardTheme } from '../types/chess';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ChessBoardProps {
   chess: Chess;
@@ -31,6 +32,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
   boardSizePx,
   resetKey,
 }) => {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<Api | null>(null);
@@ -243,14 +245,14 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
         <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn rounded-lg">
           <div className="bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-2xl text-center space-y-3">
             <h4 className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
-              Выберите фигуру для превращения
+              {t('choosePromotionPiece')}
             </h4>
             <div className="flex gap-2.5 justify-center">
               {[
-                { type: 'q', label: 'Ферзь', symbol: playerColor === 'white' ? '♕' : '♛' },
-                { type: 'r', label: 'Ладья', symbol: playerColor === 'white' ? '♖' : '♜' },
-                { type: 'b', label: 'Слон', symbol: playerColor === 'white' ? '♗' : '♝' },
-                { type: 'n', label: 'Конь', symbol: playerColor === 'white' ? '♘' : '♞' },
+                { type: 'q', label: t('pieceQueen'), symbol: playerColor === 'white' ? '♕' : '♛' },
+                { type: 'r', label: t('pieceRook'), symbol: playerColor === 'white' ? '♖' : '♜' },
+                { type: 'b', label: t('pieceBishop'), symbol: playerColor === 'white' ? '♗' : '♝' },
+                { type: 'n', label: t('pieceKnight'), symbol: playerColor === 'white' ? '♘' : '♞' },
               ].map((item) => (
                 <button
                   key={item.type}

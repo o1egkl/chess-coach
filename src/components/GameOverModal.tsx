@@ -92,7 +92,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         {typeof eloDelta === 'number' && typeof newElo === 'number' && (
           <div className="bg-slate-950/70 border border-slate-800 p-2.5 rounded-xl flex items-center justify-center gap-3 font-mono text-xs">
             <span className="text-slate-400">
-              {language === 'ru' ? 'Изменение рейтинга:' : language === 'tr' ? 'Reyting değişimi:' : 'Rating change:'}
+              {t('ratingChange')}
             </span>
             <span
               className={`font-bold flex items-center gap-1 ${
@@ -114,7 +114,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             <div className="text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>
-                {language === 'ru' ? 'Разблокирован новый бот!' : language === 'tr' ? 'Yeni Bot Açıldı!' : 'New Bot Unlocked!'}
+                {t('newBotUnlocked')}
               </span>
             </div>
             <div className="text-white text-xs font-semibold">{unlockedLevelName}</div>
@@ -126,10 +126,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           <span className="text-2xl">{level.avatar}</span>
           <div className="text-left">
             <div className="text-xs text-slate-400">
-              {language === 'ru' ? 'Соперник:' : language === 'tr' ? 'Rakip:' : 'Opponent:'}
+              {t('opponentLabel')}
             </div>
             <div className="text-sm font-bold text-slate-100">
-              {language === 'ru' ? 'Уровень' : language === 'tr' ? 'Seviye' : 'Level'} {level.id}: {botName} ({level.elo} {language === 'ru' ? 'Эло' : 'Elo'})
+              {t('levelLabel')} {level.id}: {botName} ({level.elo} {t('elo')})
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
                 onClick={onChangeColor}
                 className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow"
               >
-                <span>{language === 'ru' ? 'Выбрать цвет' : language === 'tr' ? 'Renk Seç' : 'Choose Side'}</span>
+                <span>{t('chooseColorBtn')}</span>
               </button>
             ) : (
               <button

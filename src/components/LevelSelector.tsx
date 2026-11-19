@@ -23,34 +23,19 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
 
   const leagueLabels: Record<League, { title: string; icon: React.ReactNode; range: string }> = {
     beginner: {
-      title: language === 'ru' ? 'Лига начинающих' : language === 'tr' ? 'Başlangıç Ligi' : 'Beginners',
+      title: t('leagueBeginnersTitle'),
       icon: <Shield className="w-4 h-4 text-emerald-400" />,
-      range:
-        language === 'ru'
-          ? 'Уровни 1–5 (400–1000 Эло)'
-          : language === 'tr'
-          ? 'Seviyeler 1–5 (400–1000 Elo)'
-          : 'Levels 1–5 (400–1000 Elo)',
+      range: t('leagueBeginnersSubtitle'),
     },
     club: {
-      title: language === 'ru' ? 'Клубная лига' : language === 'tr' ? 'Kulüp Ligi' : 'Club League',
+      title: t('leagueClubTitle'),
       icon: <Swords className="w-4 h-4 text-blue-400" />,
-      range:
-        language === 'ru'
-          ? 'Уровни 6–10 (1150–1750 Эло)'
-          : language === 'tr'
-          ? 'Seviyeler 6–10 (1150–1750 Elo)'
-          : 'Levels 6–10 (1150–1750 Elo)',
+      range: t('leagueClubSubtitle'),
     },
     master: {
-      title: language === 'ru' ? 'Мастерская лига' : language === 'tr' ? 'Usta Ligi' : 'Master League',
+      title: t('leagueMasterTitle'),
       icon: <Trophy className="w-4 h-4 text-amber-400" />,
-      range:
-        language === 'ru'
-          ? 'Уровни 11–15 (1900–2420+ Эло)'
-          : language === 'tr'
-          ? 'Seviyeler 11–15 (1900–2420+ Elo)'
-          : 'Levels 11–15 (1900–2420+ Elo)',
+      range: t('leagueMasterSubtitle'),
     },
   };
 
@@ -129,7 +114,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                       </span>
                       {isCurrent && (
                         <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-slate-950 rounded shrink-0 whitespace-nowrap">
-                          {language === 'ru' ? 'В игре' : language === 'tr' ? 'Aktif' : 'Active'}
+                          {t('inGameActive')}
                         </span>
                       )}
                       {!isUnlocked && (
@@ -140,13 +125,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                       {isBeaten && (
                         <span
                           className="text-emerald-400"
-                          title={
-                            language === 'ru'
-                              ? `Пройден (${stat?.wins} побед)`
-                              : language === 'tr'
-                              ? `Geçildi (${stat?.wins} galibiyet)`
-                              : `Beaten (${stat?.wins} wins)`
-                          }
+                          title={t('completedWins', { wins: stat?.wins || 0 })}
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                         </span>
@@ -156,20 +135,11 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                       <span>{botRank}</span>
                       <span>•</span>
                       <span className="font-mono text-amber-400 font-semibold">
-                        {lvl.elo} {language === 'ru' ? 'Эло' : 'Elo'}
+                        {lvl.elo} {t('elo')}
                       </span>
                       {stat && stat.wins > 0 && (
                         <span className="text-[10px] text-emerald-400 font-mono">
-                          • {stat.wins}{' '}
-                          {language === 'ru'
-                            ? stat.wins === 1
-                              ? 'победа'
-                              : 'побед'
-                            : language === 'tr'
-                            ? 'galibiyet'
-                            : stat.wins === 1
-                            ? 'win'
-                            : 'wins'}
+                          • {stat.wins} {t('winsWord')}
                         </span>
                       )}
                     </div>
@@ -216,11 +186,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                       onClick={() => onSelectLevel(lvl)}
                       className="w-full mt-2 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold rounded text-xs transition shadow"
                     >
-                      {language === 'ru'
-                        ? `Играть с этим ботом (${lvl.elo} Эло)`
-                        : language === 'tr'
-                        ? `Bu botla oyna (${lvl.elo} Elo)`
-                        : `Play against ${botName} (${lvl.elo} Elo)`}
+                      {t('playWithThisBot', { elo: lvl.elo })}
                     </button>
                   )}
 
@@ -228,11 +194,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                     <div className="w-full mt-2 py-1.5 px-2 bg-slate-800/80 border border-slate-700 text-slate-400 rounded text-center text-[11px] flex items-center justify-center gap-1.5">
                       <Lock className="w-3.5 h-3.5 text-amber-400" />
                       <span>
-                        {language === 'ru'
-                          ? `Победите бота ${getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language)}, чтобы открыть`
-                          : language === 'tr'
-                          ? `Kilidi açmak için ${getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language)} botunu yenin`
-                          : `Defeat ${getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language)} to unlock`}
+                        {t('defeatBotToUnlock', { bot: getLevelName(CHESS_LEVELS[lvl.id - 2] || CHESS_LEVELS[0], language) })}
                       </span>
                     </div>
                   )}

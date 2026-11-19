@@ -1,13 +1,13 @@
 import React from 'react';
 import { LevelConfig } from '../types/chess';
-import { OpeningInfo } from '../config/openings';
+import { OpeningInfo, getOpeningName, getOpeningGoal } from '../config/openings';
 import { getLevelName } from '../config/levels';
 import { useLanguage } from '../context/LanguageContext';
 import { Lightbulb, AlertTriangle, Eye, Compass, ShieldAlert } from 'lucide-react';
 
 interface CoachCardProps {
   level: LevelConfig;
-  gamePhase: 'Дебют' | 'Миттельшпиль' | 'Эндшпиль';
+  gamePhase: 'opening' | 'middlegame' | 'endgame';
   openingInfo: OpeningInfo | null;
   coachMessage: string;
   blunderWarning: string | null;
@@ -43,19 +43,11 @@ export const CoachCard: React.FC<CoachCardProps> = ({
   const { language, t } = useLanguage();
 
   const phaseLabel =
-    language === 'en'
-      ? gamePhase === 'Дебют'
-        ? 'Opening'
-        : gamePhase === 'Миттельшпиль'
-        ? 'Middlegame'
-        : 'Endgame'
-      : language === 'tr'
-      ? gamePhase === 'Дебют'
-        ? 'Açılış'
-        : gamePhase === 'Миттельшпиль'
-        ? 'Oyun Ortası'
-        : 'Oyun Sonu'
-      : gamePhase;
+    gamePhase === 'opening'
+      ? t('phaseOpening')
+      : gamePhase === 'middlegame'
+      ? t('phaseMiddlegame')
+      : t('phaseEndgame');
 
   const botName = getLevelName(level, language);
 
@@ -71,7 +63,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
               {t('coachTitle')}
             </h3>
             <span className="text-[10px] text-slate-400 ml-1">
-              {language === 'ru' ? 'Фаза: ' : language === 'tr' ? 'Aşama: ' : 'Phase: '}
+              {t('gamePhaseLabel')}
               <strong className="text-amber-400 font-semibold">{phaseLabel}</strong>
             </span>
           </div>
@@ -84,13 +76,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
                   ? 'bg-rose-500/25 text-rose-300 border border-rose-500/60 shadow-sm'
                   : 'bg-slate-700/70 text-slate-300 hover:bg-slate-700 border border-slate-600'
               }`}
-              title={
-                language === 'ru'
-                  ? 'Подсветить поля под боем и незащищенные фигуры'
-                  : language === 'tr'
-                  ? 'Tehdit altındaki kareleri ve korumasız taşları vurgula'
-                  : 'Highlight threatened squares and hanging pieces'
-              }
+              title={t('threatRadarTooltip')}
             >
               <ShieldAlert className="w-3 h-3 text-rose-400" />
               <span>{t('threatRadar')}</span>
@@ -122,11 +108,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
             {isBotThinking ? (
               <span className="text-amber-400 italic flex items-center gap-1.5">
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                {language === 'ru'
-                  ? `Бот ${botName} думает...`
-                  : language === 'tr'
-                  ? `Bot ${botName} düşünüyor...`
-                  : `Bot ${botName} is thinking...`}
+                {t('botThinkingNamed', { bot: botName })}
               </span>
             ) : (
               coachMessage
@@ -189,7 +171,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
               {t('coachTitle')}
             </h3>
             <span className="text-[11px] text-slate-400">
-              {language === 'ru' ? 'Фаза: ' : language === 'tr' ? 'Aşama: ' : 'Phase: '}
+              {t('gamePhaseLabel')}
               <strong className="text-amber-400">{phaseLabel}</strong>
             </span>
           </div>
@@ -204,13 +186,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/50 shadow-sm'
                 : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700 border border-slate-600'
             }`}
-            title={
-              language === 'ru'
-                ? 'Подсветить поля под боем и незащищенные фигуры'
-                : language === 'tr'
-                ? 'Tehdit altındaki kareleri ve korumasız taşları vurgula'
-                : 'Highlight threatened squares and hanging pieces'
-            }
+            title={t('threatRadarTooltip')}
           >
             <ShieldAlert className="w-3.5 h-3.5" />
             <span>{t('threatRadar')}</span>
@@ -244,10 +220,10 @@ export const CoachCard: React.FC<CoachCardProps> = ({
         <div className="bg-slate-900/60 border border-slate-700/50 p-2.5 rounded-lg space-y-1 text-xs">
           <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
             <Compass className="w-3.5 h-3.5" />
-            <span>{openingInfo.name} ({openingInfo.eco})</span>
+            <span>{getOpeningName(openingInfo, language)} ({openingInfo.eco})</span>
           </div>
           <p className="text-slate-300 text-[11px] leading-relaxed">
-            {openingInfo.goal}
+            {getOpeningGoal(openingInfo, language)}
           </p>
         </div>
       )}
@@ -258,11 +234,7 @@ export const CoachCard: React.FC<CoachCardProps> = ({
           {isBotThinking ? (
             <span className="text-amber-400 italic flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              {language === 'ru'
-                ? `Бот ${botName} обдумывает ответ...`
-                : language === 'tr'
-                ? `Bot ${botName} düşünüyor...`
-                : `Bot ${botName} is thinking...`}
+              {t('botContemplating', { bot: botName })}
             </span>
           ) : (
             coachMessage

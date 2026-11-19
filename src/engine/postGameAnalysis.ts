@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js';
 import { Color, GameReport, MoveAnalysis, MoveClassification, MoveRecord } from '../types/chess';
+import { Language } from '../i18n/translations';
 import { COMMON_OPENINGS } from '../config/openings';
 
 interface EvalResult {
@@ -113,7 +114,8 @@ function evaluateFen(
 export async function analyzeGame(
   moves: MoveRecord[],
   onProgress?: (progressPercent: number) => void,
-  playerColor?: Color
+  playerColor?: Color,
+  lang: Language = 'ru'
 ): Promise<GameReport> {
   if (moves.length === 0) {
     return {
@@ -194,37 +196,144 @@ export async function analyzeGame(
 
     // Check classification
     let classification: MoveClassification = '!';
-    let explanation = 'Хороший ход';
+    let explanation = '';
 
     const userUci = `${record.from}${record.to}`;
     const playedBest = userUci === beforeResult.bestMove || record.san === bestMoveSan;
     const inBook = isBookMove(i, record.san, moves);
 
+    const betterMove = bestMoveSan || beforeResult.bestMove;
+
     if (inBook) {
       classification = 'book';
-      explanation = 'Теоретический дебютный ход.';
+      explanation =
+        lang === 'ru'
+          ? 'Теоретический дебютный ход.'
+          : lang === 'tr'
+          ? 'Teorik açılış hamlesi.'
+          : lang === 'he'
+          ? 'מסע פתיחה תאורטי.'
+          : lang === 'uk'
+          ? 'Теоретичний дебютний хід.'
+          : lang === 'es'
+          ? 'Jugada teórica de apertura.'
+          : lang === 'de'
+          ? 'Theoretischer Eröffnungszug.'
+          : lang === 'fr'
+          ? "Coup théorique d'ouverture."
+          : 'Theoretical opening book move.';
     } else if (playedBest) {
       if (lossCp <= 10 && evalAfterCp * (color === 'white' ? 1 : -1) > 250 && record.san.includes('x')) {
         classification = '!!';
-        explanation = 'Блестящее тактическое решение!';
+        explanation =
+          lang === 'ru'
+            ? 'Блестящее тактическое решение!'
+            : lang === 'tr'
+            ? 'Mükemmel taktiksel çözüm!'
+            : lang === 'he'
+            ? 'פתרון טקטי מבריק!'
+            : lang === 'uk'
+            ? 'Блискуче тактичне рішення!'
+            : lang === 'es'
+            ? '¡Brillante solución táctica!'
+            : lang === 'de'
+            ? 'Brillante taktische Lösung!'
+            : lang === 'fr'
+            ? 'Brillante solution tactique !'
+            : 'Brilliant tactical solution!';
       } else {
         classification = '!';
-        explanation = 'Лучший ход в позиции.';
+        explanation =
+          lang === 'ru'
+            ? 'Лучший ход в позиции.'
+            : lang === 'tr'
+            ? 'Pozisyondaki en iyi hamle.'
+            : lang === 'he'
+            ? 'המסע הטוב ביותר בעמדה.'
+            : lang === 'uk'
+            ? 'Найкращий хід у позиції.'
+            : lang === 'es'
+            ? 'La mejor jugada en la posición.'
+            : lang === 'de'
+            ? 'Bester Zug in der Stellung.'
+            : lang === 'fr'
+            ? 'Le meilleur coup dans la position.'
+            : 'Best move in the position.';
       }
     } else if (lossCp >= 250) {
       classification = '??';
       const lossPawns = (lossCp / 100).toFixed(1);
-      explanation = `Грубая ошибка (потеря ~${lossPawns} пешек). Лучше было сыграть ${bestMoveSan || beforeResult.bestMove}.`;
+      explanation =
+        lang === 'ru'
+          ? `Грубая ошибка (потеря ~${lossPawns} пешек). Лучше было сыграть ${betterMove}.`
+          : lang === 'tr'
+          ? `Büyük hata (~${lossPawns} piyon kaybı). ${betterMove} oynamak daha iyiydi.`
+          : lang === 'he'
+          ? `שגיאה חמורה (איבוד של כ-${lossPawns} רגלים). עדיף היה לשחק ${betterMove}.`
+          : lang === 'uk'
+          ? `Груба помилка (втрата ~${lossPawns} пішаків). Краще було зіграти ${betterMove}.`
+          : lang === 'es'
+          ? `Grave error (pérdida de ~${lossPawns} peones). Era mejor jugar ${betterMove}.`
+          : lang === 'de'
+          ? `Grober Fehler (Verlust von ~${lossPawns} Bauern). Besser war ${betterMove}.`
+          : lang === 'fr'
+          ? `Gaffe (perte de ~${lossPawns} pions). Il valait mieux jouer ${betterMove}.`
+          : `Blunder (loss of ~${lossPawns} pawns). Better was ${betterMove}.`;
     } else if (lossCp >= 110) {
       classification = '?';
       const lossPawns = (lossCp / 100).toFixed(1);
-      explanation = `Ошибка (потеря ~${lossPawns} пешек). Сильнее ход ${bestMoveSan || beforeResult.bestMove}.`;
+      explanation =
+        lang === 'ru'
+          ? `Ошибка (потеря ~${lossPawns} пешек). Сильнее ход ${betterMove}.`
+          : lang === 'tr'
+          ? `Hata (~${lossPawns} piyon kaybı). ${betterMove} daha güçlüydü.`
+          : lang === 'he'
+          ? `שגיאה (איבוד של כ-${lossPawns} רגלים). עדיף המסע ${betterMove}.`
+          : lang === 'uk'
+          ? `Помилка (втрата ~${lossPawns} пішаків). Сильніше хід ${betterMove}.`
+          : lang === 'es'
+          ? `Error (pérdida de ~${lossPawns} peones). Más fuerte era ${betterMove}.`
+          : lang === 'de'
+          ? `Fehler (Verlust von ~${lossPawns} Bauern). Stärker war ${betterMove}.`
+          : lang === 'fr'
+          ? `Erreur (perte de ~${lossPawns} pions). Plus fort était ${betterMove}.`
+          : `Mistake (loss of ~${lossPawns} pawns). Stronger was ${betterMove}.`;
     } else if (lossCp >= 45) {
       classification = '?!';
-      explanation = `Неточность. Лучшей альтернативой был ход ${bestMoveSan || beforeResult.bestMove}.`;
+      explanation =
+        lang === 'ru'
+          ? `Неточность. Лучшей альтернативой был ход ${betterMove}.`
+          : lang === 'tr'
+          ? `Hassas olmayan hamle. Daha iyi alternatif: ${betterMove}.`
+          : lang === 'he'
+          ? `אי דיוק. חלופה טובה יותר הייתה ${betterMove}.`
+          : lang === 'uk'
+          ? `Неточність. Кращою альтернативою був хід ${betterMove}.`
+          : lang === 'es'
+          ? `Imprecisión. Mejor alternativa era ${betterMove}.`
+          : lang === 'de'
+          ? `Ungenauigkeit. Bessere Alternative war ${betterMove}.`
+          : lang === 'fr'
+          ? `Imprécision. Meilleure alternative : ${betterMove}.`
+          : `Inaccuracy. Better alternative was ${betterMove}.`;
     } else {
       classification = '!';
-      explanation = 'Качественный ход.';
+      explanation =
+        lang === 'ru'
+          ? 'Качественный ход.'
+          : lang === 'tr'
+          ? 'Sağlam hamle.'
+          : lang === 'he'
+          ? 'מסע מוצק.'
+          : lang === 'uk'
+          ? 'Якісний хід.'
+          : lang === 'es'
+          ? 'Jugada sólida.'
+          : lang === 'de'
+          ? 'Solider Zug.'
+          : lang === 'fr'
+          ? 'Coup solide.'
+          : 'Solid move.';
     }
 
     counts[color][classification]++;

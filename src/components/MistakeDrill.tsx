@@ -40,43 +40,20 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
     setCustomShapes([]);
 
     const blunderLabel =
-      language === 'en'
-        ? currentMistake.classification === '??'
-          ? 'a blunder'
-          : currentMistake.classification === '?'
-          ? 'a mistake'
-          : 'an inaccuracy'
-        : language === 'tr'
-        ? currentMistake.classification === '??'
-          ? 'büyük bir hata'
-          : currentMistake.classification === '?'
-          ? 'bir hata'
-          : 'hassasiyetsiz bir hamle'
-        : currentMistake.classification === '??'
-        ? 'грубый зевок'
+      currentMistake.classification === '??'
+        ? t('blunderName')
         : currentMistake.classification === '?'
-        ? 'ошибочный ход'
-        : 'неточность';
+        ? t('mistakeName')
+        : t('inaccuracyName');
 
-    const sideName =
-      currentMistake.color === 'white'
-        ? language === 'ru'
-          ? 'Белых'
-          : language === 'tr'
-          ? 'Beyaz'
-          : 'White'
-        : language === 'ru'
-        ? 'Чёрных'
-        : language === 'tr'
-        ? 'Siyah'
-        : 'Black';
+    const sideName = currentMistake.color === 'white' ? t('pieceColorWhite') : t('pieceColorBlack');
 
     setFeedback(
-      language === 'ru'
-        ? `В этой позиции за ${sideName} было сыграно ${currentMistake.san} (${blunderLabel}). Найдите сильнейшее продолжение!`
-        : language === 'tr'
-        ? `Bu pozisyonda ${sideName} için ${currentMistake.san} oynandı (${blunderLabel}). En güçlü hamleyi bulun!`
-        : `In this position you played ${currentMistake.san} for ${sideName}. This was ${blunderLabel}. Find the strongest move!`
+      t('drillPositionContext', {
+        side: sideName,
+        san: currentMistake.san,
+        label: blunderLabel,
+      })
     );
   }, [currentIndex, currentMistake, language]);
 
@@ -89,22 +66,14 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
           <h3 className="text-xl font-bold text-white">{t('drillAllDone')}</h3>
           <p className="text-sm text-slate-300">
             {solvedCount > 0
-              ? language === 'ru'
-                ? `Вы успешно исправили ${solvedCount} ${solvedCount === 1 ? 'ошибку' : 'ошибок'}. Отличная работа над тактикой!`
-                : language === 'tr'
-                ? `Toplam ${solvedCount} hatayı başarıyla düzelttiniz. Harika taktiksel çalışma!`
-                : `You successfully solved and corrected ${solvedCount} ${solvedCount === 1 ? 'mistake' : 'mistakes'}. Great tactical workout!`
-              : language === 'ru'
-              ? 'В этой партии не обнаружено критических ошибок. Отличная точность игры!'
-              : language === 'tr'
-              ? 'Bu oyunda düzeltilecek kritik bir hata bulunamadı! Mükemmel doğruluk.'
-              : 'No critical mistakes to fix in this game! Excellent precision.'}
+              ? t('drillSolvedSummary', { count: solvedCount })
+              : t('drillNoMistakes')}
           </p>
           <button
             onClick={onClose}
             className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-600/30"
           >
-            {language === 'ru' ? 'Вернуться к разбору' : language === 'tr' ? 'Analize Dön' : 'Back to Review'}
+            {t('backToReview')}
           </button>
         </div>
       </div>
@@ -141,24 +110,17 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
       setSolvedCount((prev) => prev + 1);
       setCustomShapes([{ orig: orig as any, dest: dest as any, brush: 'green' }]);
       setFeedback(
-        language === 'ru'
-          ? `🎉 Верно! Ход ${moveResult.san} — сильнейшее решение. ${currentMistake.explanation}`
-          : language === 'tr'
-          ? `🎉 Doğru! ${moveResult.san} hamlesi en güçlü devam yoludur. ${currentMistake.explanation}`
-          : `🎉 Correct! Move ${moveResult.san} is the strongest continuation. ${currentMistake.explanation}`
+        t('drillMoveCorrect', {
+          move: moveResult.san,
+          desc: currentMistake.explanation,
+        })
       );
     } else {
       sounds.playMove();
       setDrillChess(testChess);
       setStatus('failed');
       setCustomShapes([{ orig: orig as any, dest: dest as any, brush: 'red' }]);
-      setFeedback(
-        language === 'ru'
-          ? `Ход ${moveResult.san} уступает лучшему решению. Попробуйте ещё раз!`
-          : language === 'tr'
-          ? `${moveResult.san} hamlesi en iyi hamle değil. Tekrar deneyin!`
-          : `Move ${moveResult.san} is suboptimal. Try again!`
-      );
+      setFeedback(t('drillMoveInferior', { move: moveResult.san }));
 
       // Revert after 850ms so user can try again
       setTimeout(() => {
@@ -174,13 +136,7 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
     const from = currentMistake.bestMoveUci.substring(0, 2).toLowerCase();
     setHintLevel(1);
     setCustomShapes([{ orig: from as any, brush: 'yellow' }]);
-    setFeedback(
-      language === 'ru'
-        ? `💡 Подсказка: обратите внимание на фигуру на поле ${from.toUpperCase()}.`
-        : language === 'tr'
-        ? `💡 İpucu: ${from.toUpperCase()} karesindeki taşa dikkat edin.`
-        : `💡 Hint: Pay attention to the piece on ${from.toUpperCase()}.`
-    );
+    setFeedback(t('puzzlePieceHint', { square: from.toUpperCase() }));
   };
 
   const handleShowSolution = () => {
@@ -200,22 +156,20 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
         setStatus('success');
         sounds.playVictory();
         setFeedback(
-          language === 'ru'
-            ? `Решение: ${currentMistake.bestMoveSan || res.san}. ${currentMistake.explanation}`
-            : language === 'tr'
-            ? `Çözüm: ${currentMistake.bestMoveSan || res.san}. ${currentMistake.explanation}`
-            : `Solution: ${currentMistake.bestMoveSan || res.san}. ${currentMistake.explanation}`
+          t('drillSolutionRevealed', {
+            move: currentMistake.bestMoveSan || res.san,
+            desc: currentMistake.explanation,
+          })
         );
         return;
       }
     } catch {}
 
     setFeedback(
-      language === 'ru'
-        ? `Решение: ${currentMistake.bestMoveSan || currentMistake.bestMoveUci}.`
-        : language === 'tr'
-        ? `Çözüm: ${currentMistake.bestMoveSan || currentMistake.bestMoveUci}.`
-        : `Solution: ${currentMistake.bestMoveSan || currentMistake.bestMoveUci}.`
+      t('drillSolutionRevealed', {
+        move: currentMistake.bestMoveSan || currentMistake.bestMoveUci,
+        desc: currentMistake.explanation,
+      })
     );
   };
 
@@ -232,13 +186,7 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
     setStatus('trying');
     setHintLevel(0);
     setCustomShapes([]);
-    setFeedback(
-      language === 'ru'
-        ? `Найдите сильнейшее продолжение вместо ${currentMistake.san}!`
-        : language === 'tr'
-        ? `${currentMistake.san} yerine en güçlü devam hamlesini bulun!`
-        : `Find the strongest continuation instead of ${currentMistake.san}!`
-    );
+    setFeedback(t('findStrongerContinuation', { move: currentMistake.san }));
   };
 
   return (
@@ -254,11 +202,13 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
               {t('drillTitle')}
             </h3>
             <p className="text-xs text-slate-400">
-              {language === 'ru'
-                ? `Ошибка ${currentIndex + 1} из ${mistakes.length} (Ход ${currentMistake.moveNumber}. ${currentMistake.color === 'white' ? 'Белые' : 'Чёрные'}: ${currentMistake.san})`
-                : language === 'tr'
-                ? `Hata ${currentIndex + 1} / ${mistakes.length} (Hamle ${currentMistake.moveNumber}. ${currentMistake.color === 'white' ? 'Beyaz' : 'Siyah'}: ${currentMistake.san})`
-                : `Mistake ${currentIndex + 1} of ${mistakes.length} (Move ${currentMistake.moveNumber}. ${currentMistake.color === 'white' ? 'White' : 'Black'}: ${currentMistake.san})`}
+              {t('drillMistakeHeader', {
+                current: currentIndex + 1,
+                total: mistakes.length,
+                move: currentMistake.moveNumber,
+                color: currentMistake.color === 'white' ? t('pieceColorWhite') : t('pieceColorBlack'),
+                san: currentMistake.san,
+              })}
             </p>
           </div>
 
@@ -293,7 +243,7 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
               {/* Classification Badge */}
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">
-                  {language === 'ru' ? 'Тип ошибки:' : language === 'tr' ? 'Hata türü:' : 'Mistake type:'}
+                  {t('mistakeTypeLabel')}
                 </span>
                 <span
                   className={`px-2 py-0.5 rounded text-[11px] font-bold ${
@@ -305,35 +255,23 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
                   }`}
                 >
                   {currentMistake.classification === '??'
-                    ? language === 'ru'
-                      ? '?? Зевок'
-                      : language === 'tr'
-                      ? '?? Büyük Hata'
-                      : '?? Blunder'
+                    ? t('blunderName')
                     : currentMistake.classification === '?'
-                    ? language === 'ru'
-                      ? '? Ошибка'
-                      : language === 'tr'
-                      ? '? Hata'
-                      : '? Mistake'
-                    : language === 'ru'
-                    ? '?! Неточность'
-                    : language === 'tr'
-                    ? '?! Hassasiyetsiz'
-                    : '?! Inaccuracy'}
+                    ? t('mistakeName')
+                    : t('inaccuracyName')}
                 </span>
               </div>
 
               {/* In-Game Played Move vs Best Move */}
               <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-lg space-y-1 font-mono text-[11px]">
                 <div className="flex justify-between text-slate-400">
-                  <span>{language === 'ru' ? 'В партии сыграно:' : language === 'tr' ? 'Oyunda oynanan:' : 'Played in game:'}</span>
+                  <span>{t('playedInGameLabel')}</span>
                   <span className="text-red-400 font-bold">{currentMistake.san}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
-                  <span>{language === 'ru' ? 'Потеря оценки:' : language === 'tr' ? 'Değerlendirme kaybı:' : 'Eval loss:'}</span>
+                  <span>{t('evalLossLabel')}</span>
                   <span className="text-amber-400">
-                    ~{(currentMistake.lossCp / 100).toFixed(1)} {language === 'ru' ? 'пешки' : language === 'tr' ? 'piyon' : 'pawns'}
+                    ~{t('evalLossPawns', { loss: (currentMistake.lossCp / 100).toFixed(1) })}
                   </span>
                 </div>
               </div>
@@ -389,7 +327,7 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
                       className="col-span-2 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white rounded-lg transition flex items-center justify-center gap-1.5"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      <span>{language === 'ru' ? 'Сбросить позицию' : language === 'tr' ? 'Pozisyonu Sıfırla' : 'Reset position'}</span>
+                      <span>{t('resetPosition')}</span>
                     </button>
                   </div>
                 )}

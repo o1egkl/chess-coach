@@ -60,7 +60,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
         <div className="flex items-center gap-1.5 text-xs">
           <span className="text-slate-400 mr-0.5 font-medium">
-            {language === 'ru' ? 'Сторона:' : language === 'tr' ? 'Taraf:' : 'Side:'}
+            {t('sideLabel')}
           </span>
           <button
             onClick={() => onSelectColor('white')}
@@ -69,14 +69,14 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 ? 'bg-slate-100 text-slate-900 border-emerald-400 ring-2 ring-emerald-400/40'
                 : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
             }`}
-            title={language === 'ru' ? 'Играть белыми (ход первым)' : language === 'tr' ? 'Beyaz ile Oyna (İlk hamle sizde)' : 'Play White (Move first)'}
+            title={t('playWhiteDesc')}
           >
             <Crown className="w-4 h-4 fill-slate-900 text-slate-900" />
           </button>
           <button
             onClick={() => onSelectColor('random')}
             className="w-8 h-8 rounded-lg font-bold text-xs border flex items-center justify-center transition shadow-sm bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-300 border-slate-700 hover:border-cyan-400/60"
-            title={language === 'ru' ? 'Случайный цвет (50/50)' : language === 'tr' ? 'Rastgele taraf (50/50)' : 'Random side (50/50)'}
+            title={t('playRandomDesc')}
           >
             <Dices className="w-4 h-4 text-cyan-400" />
           </button>
@@ -87,7 +87,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 ? 'bg-slate-950 text-white border-emerald-400 ring-2 ring-emerald-400/40 shadow-emerald-500/10'
                 : 'bg-slate-900 text-slate-400 border-slate-750 hover:text-white hover:bg-slate-800'
             }`}
-            title={language === 'ru' ? 'Играть чёрными (бот ходит первым)' : language === 'tr' ? 'Siyah ile Oyna (İlk hamle botta)' : 'Play Black (Bot moves first)'}
+            title={t('playBlackDesc')}
           >
             <Crown className="w-4 h-4 fill-slate-100 text-slate-100" />
           </button>
@@ -97,7 +97,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <button
             onClick={onFlipBoard}
             className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white transition"
-            title={language === 'ru' ? 'Перевернуть доску' : language === 'tr' ? 'Tahtayı Çevir' : 'Flip board'}
+            title={t('flipBoard')}
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -117,13 +117,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
         <div className="flex items-center gap-1">
           <Palette className="w-3.5 h-3.5 text-slate-400" />
           <span>
-            {language === 'ru' ? 'Тема доски:' :
-             language === 'uk' ? 'Тема дошки:' :
-             language === 'tr' ? 'Tema:' :
-             language === 'es' ? 'Tema:' :
-             language === 'de' ? 'Brettdesign:' :
-             language === 'fr' ? 'Thème de l’échiquier :' :
-             language === 'he' ? 'ערכת לוח:' : 'Theme:'}
+            {t('boardTheme')}
           </span>
         </div>
         <div className="flex items-center gap-1">

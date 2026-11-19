@@ -1,5 +1,6 @@
 import React from 'react';
 import { EngineEvaluation } from '../types/chess';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EvalBarProps {
   evaluation: EngineEvaluation | null;
@@ -7,6 +8,7 @@ interface EvalBarProps {
 }
 
 export const EvalBar: React.FC<EvalBarProps> = ({ evaluation, orientation }) => {
+  const { t } = useLanguage();
   // Calculate percentage for White (0% = completely winning for Black, 100% = completely winning for White)
   let whitePercent = 50;
   let label = '0.0';
@@ -33,7 +35,7 @@ export const EvalBar: React.FC<EvalBarProps> = ({ evaluation, orientation }) => 
   const topPercent = orientation === 'white' ? 100 - whitePercent : whitePercent;
 
   return (
-    <div className="h-full flex flex-col items-center justify-center select-none py-0.5 flex-shrink-0 relative w-3.5 sm:w-4" title={`Оценка позиции: ${label}`}>
+    <div className="h-full flex flex-col items-center justify-center select-none py-0.5 flex-shrink-0 relative w-3.5 sm:w-4" title={t('evalPosition', { label })}>
       {/* Outer wrapper */}
       <div className="relative w-2 sm:w-2.5 h-full flex flex-col justify-between">
         {/* Thermometer pill with rounded overflow */}

@@ -45,11 +45,7 @@ export const NewGameModal: React.FC<NewGameModalProps> = ({
             {t('newGame')}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            {language === 'ru'
-              ? `Противник: ${botName} (${botElo} Эло)`
-              : language === 'tr'
-              ? `Rakip: ${botName} (${botElo} Elo)`
-              : `Opponent: ${botName} (${botElo} Elo)`}
+            {t('newGameModalOpponent', { bot: botName, elo: botElo })}
           </p>
           <p className="text-sm font-semibold text-slate-200 mt-3">
             {t('chooseColor')}
@@ -109,11 +105,7 @@ export const NewGameModal: React.FC<NewGameModalProps> = ({
 
         {/* Footer Hint */}
         <p className="text-[11px] text-slate-400 text-center">
-          {language === 'ru'
-            ? 'При выборе Чёрных или Random бот сразу начнёт партию ходом белых.'
-            : language === 'tr'
-            ? 'Siyah veya Rastgele seçildiğinde bot hemen beyaz ile ilk hamleyi yapar.'
-            : 'Choosing Black or Random will make the bot start immediately as White.'}
+          {t('newGameBlackStartNote')}
         </p>
       </div>
     </div>

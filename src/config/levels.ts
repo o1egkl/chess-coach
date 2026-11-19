@@ -468,40 +468,46 @@ export const CHESS_LEVELS: LevelConfig[] = [
 ];
 
 export function getLevelName(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.name;
   if (BOT_TRANSLATIONS[level.id]?.[lang]?.name) return BOT_TRANSLATIONS[level.id]![lang]!.name;
   if (lang === 'tr' && level.nameTr) return level.nameTr;
   if (lang === 'en' && level.nameEn) return level.nameEn;
-  return level.name;
+  return level.nameEn || level.name;
 }
 
 export function getLevelRank(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.rank;
   if (BOT_TRANSLATIONS[level.id]?.[lang]?.rank) return BOT_TRANSLATIONS[level.id]![lang]!.rank;
   if (lang === 'tr' && level.rankTr) return level.rankTr;
   if (lang === 'en' && level.rankEn) return level.rankEn;
-  return level.rank;
+  return level.rankEn || level.rank;
 }
 
 export function getLevelDescription(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.description;
   if (BOT_TRANSLATIONS[level.id]?.[lang]?.description) return BOT_TRANSLATIONS[level.id]![lang]!.description;
   if (lang === 'tr' && level.descriptionTr) return level.descriptionTr;
   if (lang === 'en' && level.descriptionEn) return level.descriptionEn;
-  return level.description;
+  return level.descriptionEn || level.description;
 }
 
 export function getLevelMistakes(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.typicalMistakes;
   if (lang === 'tr' && level.typicalMistakesTr) return level.typicalMistakesTr;
   if (lang === 'en' && level.typicalMistakesEn) return level.typicalMistakesEn;
-  return level.typicalMistakes;
+  return level.typicalMistakesEn || level.typicalMistakes;
 }
 
 export function getLevelSupport(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.coachSupport;
   if (lang === 'tr' && level.coachSupportTr) return level.coachSupportTr;
   if (lang === 'en' && level.coachSupportEn) return level.coachSupportEn;
-  return level.coachSupport;
+  return level.coachSupportEn || level.coachSupport;
 }
 
 export function getLevelRequirement(level: LevelConfig, lang: Language): string {
+  if (lang === 'ru') return level.winRequirement;
   if (lang === 'tr' && level.winRequirementTr) return level.winRequirementTr;
   if (lang === 'en' && level.winRequirementEn) return level.winRequirementEn;
-  return level.winRequirement;
+  return level.winRequirementEn || level.winRequirement;
 }

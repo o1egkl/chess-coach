@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MoveAnalysis } from '../types/chess';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EvalChartProps {
   moves: MoveAnalysis[];
@@ -12,12 +13,13 @@ export const EvalChart: React.FC<EvalChartProps> = ({
   currentPlyIndex,
   onSelectPly,
 }) => {
+  const { t } = useLanguage();
   const [hoveredPly, setHoveredPly] = useState<number | null>(null);
 
   if (moves.length === 0) {
     return (
       <div className="h-32 flex items-center justify-center text-xs text-slate-500 bg-slate-900/60 rounded-xl border border-slate-800">
-        Нет данных для графика
+        {t('noDataForChart')}
       </div>
     );
   }
@@ -78,11 +80,11 @@ export const EvalChart: React.FC<EvalChartProps> = ({
     <div className="relative w-full bg-slate-900/80 border border-slate-800 rounded-xl p-3 shadow-inner">
       <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5 font-mono">
         <span className="flex items-center gap-1.5 font-bold text-slate-200">
-          📈 График преимущества (+Белые / -Черные)
+          {t('advantageChartTitle')}
         </span>
         {activePoint && (
           <span className="text-[11px] text-amber-300">
-            Ход {activePoint.move.moveNumber}. {activePoint.move.color === 'white' ? 'w: ' : 'b: '}
+            {t('moveWord')} {activePoint.move.moveNumber}. {activePoint.move.color === 'white' ? 'w: ' : 'b: '}
             <strong className="text-white">{activePoint.move.san}</strong> (
             {activePoint.move.evalAfterCp > 0 ? `+${(activePoint.move.evalAfterCp / 100).toFixed(1)}` : (activePoint.move.evalAfterCp / 100).toFixed(1)})
           </span>
