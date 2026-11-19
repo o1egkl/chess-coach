@@ -3,7 +3,7 @@ import { LevelConfig } from '../types/chess';
 import { OpeningInfo, getOpeningName, getOpeningGoal } from '../config/openings';
 import { getLevelName } from '../config/levels';
 import { useLanguage } from '../context/LanguageContext';
-import { Lightbulb, AlertTriangle, Eye, Compass, ShieldAlert } from 'lucide-react';
+import { Lightbulb, AlertTriangle, Eye, Compass, ShieldAlert, Sparkles } from 'lucide-react';
 
 interface CoachCardProps {
   level: LevelConfig;
@@ -50,6 +50,28 @@ export const CoachCard: React.FC<CoachCardProps> = ({
       : t('phaseEndgame');
 
   const botName = getLevelName(level, language);
+
+  const isTacticalChance =
+    !isBotThinking &&
+    (coachMessage.includes('Тактический шанс') ||
+      coachMessage.includes('Tactical opportunity') ||
+      coachMessage.includes('Opportunité tactique') ||
+      coachMessage.includes('הזדמנות טקטית') ||
+      coachMessage.includes('Taktik fırsat') ||
+      coachMessage.includes('Taktische Chance') ||
+      coachMessage.includes('¡Oportunidad táctica!') ||
+      coachMessage.includes('Тактичний шанс'));
+
+  const isCautionAdvice =
+    !isBotThinking &&
+    (coachMessage.includes('Осторожно') ||
+      coachMessage.includes('Caution') ||
+      coachMessage.includes('Attention') ||
+      coachMessage.includes('זהירות') ||
+      coachMessage.includes('Dikkat') ||
+      coachMessage.includes('Vorsicht') ||
+      coachMessage.includes('¡Cuidado') ||
+      coachMessage.includes('Обережно'));
 
   // Compact Mobile Mode (Fits on screen directly under the board without any scrolling)
   if (compact) {
@@ -103,17 +125,29 @@ export const CoachCard: React.FC<CoachCardProps> = ({
         )}
 
         {/* Coach Commentary & Advice */}
-        <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-700/60 text-[11px] text-slate-200 leading-snug min-h-[38px] flex items-center">
-          <p className="w-full">
-            {isBotThinking ? (
-              <span className="text-amber-400 italic flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                {t('botThinkingNamed', { bot: botName })}
-              </span>
-            ) : (
-              coachMessage
-            )}
-          </p>
+        <div
+          className={`p-2 rounded-lg border text-[11px] leading-snug min-h-[38px] flex items-center transition-all ${
+            isTacticalChance
+              ? 'bg-cyan-950/70 border-cyan-400 text-cyan-100 shadow-md shadow-cyan-500/15'
+              : isCautionAdvice
+              ? 'bg-rose-950/60 border-rose-500/70 text-rose-100 shadow-sm shadow-rose-500/10'
+              : 'bg-slate-900/80 border-slate-700/60 text-slate-200'
+          }`}
+        >
+          <div className="w-full flex items-center gap-1.5">
+            {isTacticalChance && <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 animate-pulse" />}
+            {isCautionAdvice && <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+            <p className="flex-1">
+              {isBotThinking ? (
+                <span className="text-amber-400 italic flex items-center gap-1.5">
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  {t('botThinkingNamed', { bot: botName })}
+                </span>
+              ) : (
+                coachMessage
+              )}
+            </p>
+          </div>
         </div>
 
         {/* Two-Stage Hint Controls + Quick Undo */}
@@ -229,17 +263,29 @@ export const CoachCard: React.FC<CoachCardProps> = ({
       )}
 
       {/* Coach Commentary & Advice */}
-      <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/30 text-xs text-slate-200 leading-relaxed min-h-[50px] flex items-center">
-        <p>
-          {isBotThinking ? (
-            <span className="text-amber-400 italic flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              {t('botContemplating', { bot: botName })}
-            </span>
-          ) : (
-            coachMessage
-          )}
-        </p>
+      <div
+        className={`p-3 rounded-lg border text-xs leading-relaxed min-h-[50px] flex items-center transition-all ${
+          isTacticalChance
+            ? 'bg-cyan-950/70 border-cyan-400 text-cyan-100 shadow-md shadow-cyan-500/15'
+            : isCautionAdvice
+            ? 'bg-rose-950/60 border-rose-500/70 text-rose-100 shadow-sm shadow-rose-500/10'
+            : 'bg-slate-900/40 border-slate-700/30 text-slate-200'
+        }`}
+      >
+        <div className="w-full flex items-center gap-2">
+          {isTacticalChance && <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 animate-pulse" />}
+          {isCautionAdvice && <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />}
+          <p className="flex-1">
+            {isBotThinking ? (
+              <span className="text-amber-400 italic flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                {t('botContemplating', { bot: botName })}
+              </span>
+            ) : (
+              coachMessage
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Two-Stage Hint Controls */}

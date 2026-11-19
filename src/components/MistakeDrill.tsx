@@ -5,7 +5,7 @@ import { BoardTheme, Color, MoveAnalysis } from '../types/chess';
 import { ChessBoard } from './ChessBoard';
 import { sounds } from '../engine/soundService';
 import { useLanguage } from '../context/LanguageContext';
-import { ArrowRight, HelpCircle, Eye, RotateCcw, Award } from 'lucide-react';
+import { ArrowRight, HelpCircle, Eye, RotateCcw, Award, Sparkles, AlertTriangle } from 'lucide-react';
 
 interface MistakeDrillProps {
   mistakes: MoveAnalysis[];
@@ -280,13 +280,25 @@ export const MistakeDrill: React.FC<MistakeDrillProps> = ({
               <div
                 className={`p-3 rounded-lg border leading-relaxed text-xs transition-colors duration-200 ${
                   status === 'success'
-                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                    ? 'bg-cyan-950/85 border-cyan-400 text-cyan-100 shadow-md shadow-cyan-500/20 ring-1 ring-cyan-400/30'
                     : status === 'failed'
-                    ? 'bg-red-500/15 border-red-500/40 text-red-200'
+                    ? 'bg-rose-950/80 border-rose-500/80 text-rose-200 shadow-md shadow-rose-500/10'
                     : 'bg-slate-850 border-slate-750 text-slate-200'
                 }`}
               >
-                {feedback}
+                {(status === 'success' || status === 'failed') && (
+                  <div className="font-semibold text-xs mb-1 flex items-center gap-1.5">
+                    {status === 'success' ? (
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                    ) : (
+                      <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                    )}
+                    <span>
+                      {status === 'success' ? `!! ${t('shortBrilliant')}` : t('shortBlunder')}
+                    </span>
+                  </div>
+                )}
+                <p>{feedback}</p>
               </div>
 
               {/* Action Buttons */}

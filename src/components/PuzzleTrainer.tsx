@@ -8,7 +8,7 @@ import { ChessBoard } from './ChessBoard';
 import { sounds } from '../engine/soundService';
 import { storage } from '../services/storageService';
 import { useLanguage } from '../context/LanguageContext';
-import { HelpCircle, Eye, RotateCcw, ArrowRight, Flame, Target, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, Eye, RotateCcw, ArrowRight, Flame, Target, CheckCircle2, Sparkles, AlertTriangle } from 'lucide-react';
 
 interface PuzzleTrainerProps {
   theme: BoardTheme;
@@ -22,6 +22,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   const [solutionStep, setSolutionStep] = useState<number>(0);
   const [solved, setSolved] = useState<boolean>(false);
   const [failed, setFailed] = useState<boolean>(false);
+  const [greatMove, setGreatMove] = useState<boolean>(false);
   const [streak, setStreak] = useState<number>(() => storage.getProfile().tacticsStreak);
   const [userRating, setUserRating] = useState<number>(() => storage.getProfile().tacticsRating);
   const [customShapes, setCustomShapes] = useState<DrawShape[]>([]);
@@ -52,6 +53,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
     setSolutionStep(0);
     setSolved(false);
     setFailed(false);
+    setGreatMove(false);
     setCustomShapes([]);
     setFeedback(getPuzzleDescription(currentPuzzle, language));
     setResetKey((prev) => prev + 1);
@@ -80,6 +82,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       // Check if puzzle is fully completed
       if (nextStep >= currentPuzzle.solutionUci.length) {
         sounds.playVictory();
+        setGreatMove(false);
         setSolved(true);
         const res = storage.recordTacticsResult(currentPuzzle.id, currentPuzzle.rating, true);
         setStreak(res.newStreak);
@@ -97,7 +100,8 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
           });
         } catch {}
       } else {
-        // Opponent makes next automated reply move after 400ms
+        // Multi-step puzzle: correct move played!
+        setGreatMove(true);
         setSolutionStep(nextStep);
         const opponentMoveUci = currentPuzzle.solutionUci[nextStep];
 
@@ -119,6 +123,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       setChess(testChess);
       sounds.playBlunderAlert();
       setFailed(true);
+      setGreatMove(false);
       const res = storage.recordTacticsResult(currentPuzzle.id, currentPuzzle.rating, false);
       setStreak(res.newStreak);
       setUserRating(res.newRating);
@@ -134,6 +139,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   };
 
   const handleShowHint = () => {
+    setGreatMove(false);
     const nextUci = currentPuzzle.solutionUci[solutionStep];
     if (nextUci) {
       const from = nextUci.substring(0, 2);
@@ -143,6 +149,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   };
 
   const handleShowSolution = () => {
+    setGreatMove(false);
     const nextUci = currentPuzzle.solutionUci[solutionStep];
     if (nextUci) {
       const from = nextUci.substring(0, 2);
@@ -153,6 +160,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
   };
 
   const handleNextPuzzle = () => {
+    setGreatMove(false);
     setPuzzleIndex((prev) => (prev + 1) % CHESS_PUZZLES.length);
   };
 
@@ -165,6 +173,7 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
     setSolutionStep(0);
     setSolved(false);
     setFailed(false);
+    setGreatMove(false);
     setCustomShapes([]);
     setFeedback(getPuzzleDescription(currentPuzzle, language));
     setResetKey((prev) => prev + 1);
@@ -233,22 +242,34 @@ export const PuzzleTrainer: React.FC<PuzzleTrainerProps> = ({ theme, onExit }) =
       <div className="space-y-3 bg-slate-900/60 border border-slate-800 p-4 rounded-2xl shadow-xl text-xs">
         {/* Feedback / Instructions Box */}
         <div
-          className={`p-3.5 rounded-xl border leading-relaxed ${
+          className={`p-3.5 rounded-xl border leading-relaxed transition-all duration-300 ${
             solved
-              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+              ? 'bg-emerald-950/80 border-emerald-400 text-emerald-200 shadow-lg shadow-emerald-500/10'
+              : greatMove
+              ? 'bg-cyan-950/85 border-cyan-400 text-cyan-100 shadow-lg shadow-cyan-500/25 ring-1 ring-cyan-400/30'
               : failed
-              ? 'bg-red-500/15 border-red-500/40 text-red-200'
+              ? 'bg-rose-950/80 border-rose-500/80 text-rose-200 shadow-lg shadow-rose-500/10'
               : 'bg-slate-850 border-slate-750 text-slate-200'
           }`}
         >
           <div className="font-semibold text-xs mb-1 flex items-center gap-1.5">
             {solved ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            ) : greatMove ? (
+              <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
+            ) : failed ? (
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
             ) : (
               <HelpCircle className="w-4 h-4 text-amber-400" />
             )}
             <span>
-              {solved ? t('puzzleSolved') : t('puzzleGoal')}
+              {solved
+                ? t('puzzleSolved')
+                : greatMove
+                ? `!! ${t('shortBrilliant')}`
+                : failed
+                ? t('shortBlunder')
+                : t('puzzleGoal')}
             </span>
           </div>
           <p className="text-[12px]">{feedback}</p>
