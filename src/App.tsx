@@ -757,27 +757,12 @@ export const App: React.FC = () => {
             {/* Language Selector Pill */}
             <button
               onClick={() => setIsLanguageModalOpen(true)}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs text-slate-200 transition shadow-sm font-semibold"
+              className="flex items-center justify-center bg-slate-800 hover:bg-slate-750 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-emerald-500/50 text-xs transition shadow-sm font-semibold"
               title={t('chooseLanguage')}
             >
-              <span className="text-sm">
-                {language === 'ru'
-                  ? '🇷🇺'
-                  : language === 'tr'
-                  ? '🇹🇷'
-                  : language === 'he'
-                  ? '🇮🇱'
-                  : language === 'uk'
-                  ? '🇺🇦'
-                  : language === 'es'
-                  ? '🇪🇸'
-                  : language === 'de'
-                  ? '🇩🇪'
-                  : language === 'fr'
-                  ? '🇫🇷'
-                  : '🇬🇧'}
+              <span className="font-mono text-xs uppercase font-bold text-emerald-400 tracking-wider">
+                {language.toUpperCase()}
               </span>
-              <span className="font-mono text-[11px] uppercase font-bold">{language.toUpperCase()}</span>
             </button>
 
             {/* Player Profile Button */}

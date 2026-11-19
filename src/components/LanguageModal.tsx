@@ -5,21 +5,20 @@ import { Globe, Check, Sparkles } from 'lucide-react';
 
 interface LanguageOption {
   code: Language;
-  flag: string;
   name: string;
   nativeDesc: string;
   badge?: string;
 }
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { code: 'ru', flag: '🇷🇺', name: 'Русский', nativeDesc: 'Интерфейс, тренер и подсказки' },
-  { code: 'en', flag: '🇬🇧', name: 'English', nativeDesc: 'Interface, coach & hints' },
-  { code: 'he', flag: '🇮🇱', name: 'עברית', nativeDesc: 'ממשק, מאמן שחמט ורמזים', badge: 'RTL' },
-  { code: 'uk', flag: '🇺🇦', name: 'Українська', nativeDesc: 'Інтерфейс, тренер і підказки' },
-  { code: 'es', flag: '🇪🇸', name: 'Español', nativeDesc: 'Interfaz, entrenador y pistas' },
-  { code: 'de', flag: '🇩🇪', name: 'Deutsch', nativeDesc: 'Oberfläche, Trainer und Hinweise' },
-  { code: 'tr', flag: '🇹🇷', name: 'Türkçe', nativeDesc: 'Arayüz, antrenör ve ipuçları' },
-  { code: 'fr', flag: '🇫🇷', name: 'Français', nativeDesc: 'Interface, entraîneur et indices' },
+  { code: 'ru', name: 'Русский', nativeDesc: 'Интерфейс, тренер и подсказки' },
+  { code: 'en', name: 'English', nativeDesc: 'Interface, coach & hints' },
+  { code: 'he', name: 'עברית', nativeDesc: 'ממשק, מאמן שחמט ורמזים', badge: 'RTL' },
+  { code: 'uk', name: 'Українська', nativeDesc: 'Інтерфейс, тренер і підказки' },
+  { code: 'es', name: 'Español', nativeDesc: 'Interfaz, entrenador y pistas' },
+  { code: 'de', name: 'Deutsch', nativeDesc: 'Oberfläche, Trainer und Hinweise' },
+  { code: 'tr', name: 'Türkçe', nativeDesc: 'Arayüz, antrenör ve ipuçları' },
+  { code: 'fr', name: 'Français', nativeDesc: 'Interface, entraîneur et indices' },
 ];
 
 export const LanguageModal: React.FC = () => {
@@ -104,9 +103,15 @@ export const LanguageModal: React.FC = () => {
                 style={opt.code === 'he' ? { direction: 'rtl', textAlign: 'right' } : undefined}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl flex-shrink-0" role="img" aria-label={opt.name}>
-                    {opt.flag}
-                  </span>
+                  <div
+                    className={`w-9 h-9 rounded-lg font-mono font-bold text-xs flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-400/50'
+                        : 'bg-slate-800 text-slate-300 border border-slate-750'
+                    }`}
+                  >
+                    {opt.code.toUpperCase()}
+                  </div>
                   <div className="min-w-0">
                     <div className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
                       <span className="truncate">{opt.name}</span>
