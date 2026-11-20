@@ -3,11 +3,11 @@ import { Chess, Square } from 'chess.js';
 import { DrawShape } from 'chessground/draw';
 import { CHESS_LEVELS, getLevelName, getLevelRank, getLevelDescription } from './config/levels';
 import { identifyOpening, OpeningInfo } from './config/openings';
-import { LevelConfig, Color, ColorChoice, MoveRecord, BoardTheme, EngineEvaluation, GameReport, PlayerProfile } from './types/chess';
+import { LevelConfig, Color, ColorChoice, MoveClassification, MoveRecord, BoardTheme, EngineEvaluation, GameReport, PlayerProfile } from './types/chess';
 import { engine } from './engine/engineController';
 import { sounds } from './engine/soundService';
 import { analyzeThreatsAndHints } from './engine/coachHeuristics';
-import { analyzeGame } from './engine/postGameAnalysis';
+import { analyzeGame, isBookMove, classifyMoveQuality } from './engine/postGameAnalysis';
 import { storage } from './services/storageService';
 import { useLanguage } from './context/LanguageContext';
 import { ChessBoard } from './components/ChessBoard';
@@ -24,6 +24,14 @@ import { ProfileModal } from './components/ProfileModal';
 import { LanguageModal } from './components/LanguageModal';
 import { NewGameModal } from './components/NewGameModal';
 import { BookOpen, Target, BarChart2, Swords, Globe, RotateCcw, Undo2, RefreshCw, Flag, Dices } from 'lucide-react';
+
+// Helper to normalize centipawns and mate evaluations
+const normalizeScore = (scoreCp?: number | null, scoreMate?: number | null): number => {
+  if (typeof scoreMate === 'number') {
+    return scoreMate > 0 ? 10000 - scoreMate * 100 : -10000 - scoreMate * 100;
+  }
+  return scoreCp ?? 0;
+};
 
 export const App: React.FC = () => {
   const { language, t, setIsLanguageModalOpen, isRtl } = useLanguage();
@@ -91,7 +99,12 @@ export const App: React.FC = () => {
 
   // Moves & Eval
   const [moveHistory, setMoveHistory] = useState<MoveRecord[]>([]);
-  const [evaluation, setEvaluation] = useState<EngineEvaluation | null>(null);
+  const [evaluation, setEvaluationState] = useState<EngineEvaluation | null>(null);
+  const evaluationRef = useRef<EngineEvaluation | null>(null);
+  const setEvaluation = useCallback((evalData: EngineEvaluation | null) => {
+    evaluationRef.current = evalData;
+    setEvaluationState(evalData);
+  }, []);
   const [isBotThinking, setIsBotThinking] = useState<boolean>(false);
 
   // Coach & Learning
@@ -245,6 +258,8 @@ export const App: React.FC = () => {
     const artificialDelay = 450 + Math.random() * 350;
 
     setTimeout(() => {
+      const evalBeforeBot = evaluationRef.current;
+
       engine.evaluateAndPlay(
         chessSnapshot.fen(),
         level,
@@ -283,14 +298,29 @@ export const App: React.FC = () => {
               else sounds.playMove();
               if (nextChess.inCheck()) sounds.playCheck();
 
+              const botColor: Color = moveResult.color === 'w' ? 'white' : 'black';
+              const botPlayedBest = !!evalBeforeBot?.bestMove && (
+                uciToPlay === evalBeforeBot.bestMove ||
+                `${from}${to}` === evalBeforeBot.bestMove.substring(0, 4)
+              );
+
               const newRecord: MoveRecord = {
                 san: moveResult.san,
                 from: moveResult.from,
                 to: moveResult.to,
-                color: moveResult.color === 'w' ? 'white' : 'black',
+                color: botColor,
                 fen: nextChess.fen(),
+                annotation: botPlayedBest ? '!' : undefined,
+                evalScore: evalBeforeBot?.scoreCp ?? null,
               };
-              setMoveHistory((prev) => [...prev, newRecord]);
+
+              setMoveHistory((prev) => {
+                const inBook = isBookMove(prev.length, moveResult.san, [...prev, newRecord]);
+                if (inBook) {
+                  newRecord.annotation = 'book';
+                }
+                return [...prev, newRecord];
+              });
 
               const isOver = checkGameStatus(nextChess);
               if (!isOver) {
@@ -302,6 +332,34 @@ export const App: React.FC = () => {
 
                 engine.evaluatePositionOnly(nextChess.fen(), 10, (evalData) => {
                   setEvaluation(evalData);
+
+                  // Classify bot move quality based on evaluation
+                  const isBotWhite = botColor === 'white';
+                  const beforeAdvantage = isBotWhite
+                    ? normalizeScore(evalBeforeBot?.scoreCp, evalBeforeBot?.scoreMate)
+                    : -normalizeScore(evalBeforeBot?.scoreCp, evalBeforeBot?.scoreMate);
+                  const afterAdvantage = isBotWhite
+                    ? normalizeScore(evalData.scoreCp, evalData.scoreMate)
+                    : -normalizeScore(evalData.scoreCp, evalData.scoreMate);
+                  const loss = Math.max(0, beforeAdvantage - afterAdvantage);
+
+                  setMoveHistory((prev) => {
+                    const lastIdx = prev.length - 1;
+                    if (lastIdx < 0) return prev;
+                    const inBook = isBookMove(lastIdx, moveResult.san, prev);
+                    const botQuality = classifyMoveQuality(
+                      loss,
+                      inBook,
+                      botPlayedBest,
+                      normalizeScore(evalData.scoreCp, evalData.scoreMate),
+                      botColor,
+                      moveResult.san
+                    );
+                    return prev.map((rec, i) =>
+                      i === lastIdx ? { ...rec, annotation: botQuality, evalScore: evalData.scoreCp } : rec
+                    );
+                  });
+
                   if (evalData.bestMove) {
                     const playerChessColor = playerColor === 'white' ? 'w' : 'b';
                     const isLegal =
@@ -330,15 +388,7 @@ export const App: React.FC = () => {
         }
       );
     }, artificialDelay);
-  }, [level, playerColor, threatRadarActive, updateBoardShapes, language]);
-
-  // Helper to normalize centipawns and mate evaluations
-  const normalizeScore = (scoreCp?: number | null, scoreMate?: number | null): number => {
-    if (typeof scoreMate === 'number') {
-      return scoreMate > 0 ? 10000 - scoreMate * 100 : -10000 - scoreMate * 100;
-    }
-    return scoreCp ?? 0;
-  };
+  }, [level, playerColor, threatRadarActive, updateBoardShapes, language, setEvaluation]);
 
   // User Move Handler (never uses stale closures)
   const handleUserMove = useCallback((orig: string, dest: string, promotion: string = 'q') => {
@@ -358,14 +408,27 @@ export const App: React.FC = () => {
         else sounds.playMove();
         if (nextChess.inCheck()) sounds.playCheck();
 
+        const isWhite = playerColor === 'white';
+        const inBook = isBookMove(moveHistory.length, moveResult.san, [...moveHistory, { san: moveResult.san } as MoveRecord]);
+        const playedUci = `${orig}${dest}${promotion !== 'q' ? promotion : ''}`;
+        const isBest = !!evaluation?.bestMove && (
+          playedUci === evaluation.bestMove ||
+          `${orig}${dest}` === evaluation.bestMove.substring(0, 4)
+        );
+
+        const initialAnnotation: MoveClassification | undefined = inBook ? 'book' : isBest ? '!' : undefined;
+
         const newRecord: MoveRecord = {
           san: moveResult.san,
           from: moveResult.from,
           to: moveResult.to,
           color: moveResult.color === 'w' ? 'white' : 'black',
           fen: nextChess.fen(),
+          annotation: initialAnnotation,
+          evalScore: evaluation?.scoreCp ?? null,
         };
         const updatedHistory = [...moveHistory, newRecord];
+        const userMoveIndex = updatedHistory.length - 1;
         setMoveHistory(updatedHistory);
 
         // Opening detection
@@ -377,47 +440,57 @@ export const App: React.FC = () => {
         updateHintStage(0);
         updateBoardShapes(0, threatRadarActive);
 
+        const beforeAdvantage = isWhite
+          ? normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate)
+          : -normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate);
+
         const isOver = checkGameStatus(nextChess);
-        if (isOver) {
-          setBlunderWarning(null);
-          return;
-        }
 
-        // Blunder Shield check with atomic evaluation before bot response
-        if (level.hasBlunderShield) {
-          const isWhite = playerColor === 'white';
-          const beforeAdvantage = isWhite
-            ? normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate)
-            : -normalizeScore(evaluation?.scoreCp, evaluation?.scoreMate);
+        // Fast evaluation (depth 6) to classify user's move quality and handle Blunder Shield
+        const testFen = nextChess.fen();
+        setIsBotThinking(true);
 
-          if (beforeAdvantage >= -150) {
-            setIsBotThinking(true);
-            const testFen = nextChess.fen();
-            engine.evaluatePositionOnly(testFen, 6, (fastEval) => {
-              setIsBotThinking(false);
-              const afterAdvantage = isWhite
-                ? normalizeScore(fastEval.scoreCp, fastEval.scoreMate)
-                : -normalizeScore(fastEval.scoreCp, fastEval.scoreMate);
-              const loss = beforeAdvantage - afterAdvantage;
+        engine.evaluatePositionOnly(testFen, 6, (fastEval) => {
+          setIsBotThinking(false);
+          const afterAdvantage = isWhite
+            ? normalizeScore(fastEval.scoreCp, fastEval.scoreMate)
+            : -normalizeScore(fastEval.scoreCp, fastEval.scoreMate);
+          const loss = Math.max(0, beforeAdvantage - afterAdvantage);
 
-              if (loss >= 220) {
-                sounds.playBlunderAlert();
-                setBlunderWarning(t('blunderAlert'));
-                // Delay bot response so player notices blunder alert and can take back
-                setTimeout(() => {
-                  triggerBotMove(nextChess);
-                }, 1400);
-              } else {
-                setBlunderWarning(null);
-                triggerBotMove(nextChess);
-              }
-            });
+          const quality = classifyMoveQuality(
+            loss,
+            inBook,
+            isBest,
+            normalizeScore(fastEval.scoreCp, fastEval.scoreMate),
+            playerColor,
+            moveResult.san
+          );
+
+          setMoveHistory((prev) =>
+            prev.map((rec, i) =>
+              i === userMoveIndex
+                ? { ...rec, annotation: quality, evalScore: fastEval.scoreCp }
+                : rec
+            )
+          );
+
+          if (isOver) {
+            setBlunderWarning(null);
             return;
           }
-        }
 
-        setBlunderWarning(null);
-        triggerBotMove(nextChess);
+          if (level.hasBlunderShield && beforeAdvantage >= -150 && loss >= 220) {
+            sounds.playBlunderAlert();
+            setBlunderWarning(t('blunderAlert'));
+            // Delay bot response so player notices blunder alert and can take back
+            setTimeout(() => {
+              triggerBotMove(nextChess);
+            }, 1400);
+          } else {
+            setBlunderWarning(null);
+            triggerBotMove(nextChess);
+          }
+        });
       }
     } catch (err) {
       console.warn('Illegal move attempted:', err);
@@ -627,6 +700,23 @@ export const App: React.FC = () => {
         language
       );
       setGameReport(report);
+
+      // Sync deep analysis classifications back to moveHistory
+      if (report && report.moves) {
+        setMoveHistory((prev) =>
+          prev.map((rec, idx) => {
+            const analyzedMove = report.moves[idx];
+            if (analyzedMove) {
+              return {
+                ...rec,
+                annotation: analyzedMove.classification,
+                evalScore: analyzedMove.evalAfterCp,
+              };
+            }
+            return rec;
+          })
+        );
+      }
 
       // Update recent game accuracy in storage
       const updated = storage.getProfile();

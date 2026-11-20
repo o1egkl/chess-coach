@@ -10,7 +10,7 @@ interface EvalResult {
 }
 
 // Check if move matches opening book
-function isBookMove(plyIndex: number, currentSan: string, moveHistory: MoveRecord[]): boolean {
+export function isBookMove(plyIndex: number, currentSan: string, moveHistory: MoveRecord[]): boolean {
   if (plyIndex >= 14) return false;
   const currentSanMoves = moveHistory.slice(0, plyIndex + 1).map((m) => m.san);
 
@@ -25,6 +25,28 @@ function isBookMove(plyIndex: number, currentSan: string, moveHistory: MoveRecor
     if (match) return true;
   }
   return false;
+}
+
+// Universal classifier for move quality
+export function classifyMoveQuality(
+  lossCp: number,
+  inBook: boolean,
+  playedBest: boolean,
+  evalAfterCp: number,
+  color: Color,
+  san: string
+): MoveClassification {
+  if (inBook) return 'book';
+  if (playedBest) {
+    if (lossCp <= 15 && evalAfterCp * (color === 'white' ? 1 : -1) > 200 && (san.includes('x') || san.includes('+'))) {
+      return '!!';
+    }
+    return '!';
+  }
+  if (lossCp >= 200) return '??';
+  if (lossCp >= 90) return '?';
+  if (lossCp >= 35) return '?!';
+  return '!';
 }
 
 // Evaluate a single FEN using a dedicated Web Worker instance
